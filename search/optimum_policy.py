@@ -1,48 +1,29 @@
-# ----------
-# User Instructions:
-#
-# Write a function optimum_policy that returns
-# a grid which shows the optimum policy for robot
-# motion. This means there should be an optimum
-# direction associated with each navigable cell from
-# which the goal can be reached.
-#
-# Unnavigable cells as well as cells from which
-# the goal cannot be reached should have a string
-# containing a single space (' '), as shown in the
-# previous video. The goal cell should have '*'.
-# ----------
-
-grid = [[0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0]]
-init = [0, 0]
-goal = [len(grid) - 1, len(grid[0]) - 1]
-cost = 1  # the cost associated with moving from a cell to an adjacent one
-
-delta = [[-1, 0],  # go up
-         [0, -1],  # go left
-         [1, 0],  # go down
-         [0, 1]]  # go right
-
-delta_name = ['^', '<', 'v', '>']
+from typing import List
 
 
-def optimum_policy(grid, goal, cost):
-    # ----------------------------------------
-    # modify code below
-    # ----------------------------------------
-    value = [[99 for row in range(len(grid[0]))] for col in range(len(grid))]
-    policy = [[' ' for row in range(len(grid[0]))] for col in range(len(grid))]
+def optimum_policy(grid: List[List[int]], goal: List[int], cost: float,
+                   possible_actions: List[List[int]], actions_symbols: List[str]) -> List[List[str]]:
+    """
+    Applies First Search algorithm to find the optimum path from the initial position to the goal state.
+    Arguments:
+        grid: 2D grid, where cells with value 1 are walls and cells with 0 are navigable spaces
+        goal: List of 2 integers representing the x and y positions of the goal state
+        cost: float representing the cost of taking a step on the grid
+        possible_actions: List containing the 4 possible movements to take: up, left, down and right
+        actions_symbols: List containing the symbols for each of the possible movements, respectively
+    """
+    # Initialize a matrix to indicate the value of each grid cell (value)
+    # and another matrix to indicate the actions taken on each state (policy)
+    value = [[99 for _ in range(len(grid[0]))] for _ in range(len(grid))]
+    policy = [[' ' for _ in range(len(grid[0]))] for _ in range(len(grid))]
+
     change = True
-
     while change:
         change = False
 
         for x in range(len(grid)):
             for y in range(len(grid[0])):
+                # If x and y are goal state set value to 0 and set the symbol to *
                 if goal[0] == x and goal[1] == y:
                     if value[x][y] > 0:
                         value[x][y] = 0
@@ -50,20 +31,46 @@ def optimum_policy(grid, goal, cost):
                         change = True
 
                 elif grid[x][y] == 0:
-                    for a in range(len(delta)):
-                        x2 = x + delta[a][0]
-                        y2 = y + delta[a][1]
+                    # If the cell is a navigable one, perform all the possible actions from that state
+                    for a in range(len(possible_actions)):
+                        x2 = x + possible_actions[a][0]
+                        y2 = y + possible_actions[a][1]
 
-                        if x2 >= 0 and x2 < len(grid) and y2 >= 0 and y2 < len(grid[0]) and grid[x2][y2] == 0:
+                        # Check that the expanded state falls into the grid and that is a valid state
+                        if 0 <= x2 < len(grid) and 0 <= y2 < len(grid[0]) and grid[x2][y2] == 0:
+                            # Update new value for x and y state as the previous state value
+                            # plus the cost of taking a step
                             v2 = value[x2][y2] + cost
 
+                            # If the new value is lower than the previous one, update it and
+                            # store the action taken to get to the new state
+                            # (each cell should have the lowest possible value)
                             if v2 < value[x][y]:
                                 change = True
                                 value[x][y] = v2
-                                policy[x][y] = delta_name[a]
+                                policy[x][y] = actions_symbols[a]
 
     return policy
 
 
-policy = optimum_policy(grid, goal, cost)
-print(policy)
+def main():
+    grid = [[0, 1, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0]]
+    possible_actions = [[-1, 0],  # go up
+                        [0, -1],  # go left
+                        [1, 0],  # go down
+                        [0, 1]]  # go right
+    goal = [len(grid) - 1, len(grid[0]) - 1]
+    cost = 1  # the cost associated with moving from a cell to an adjacent one
+    action_symbols = ['^', '<', 'v', '>']
+
+    policy = optimum_policy(grid, goal, cost, possible_actions, action_symbols)
+    for row in policy:
+        print(row)
+
+
+if __name__ == '__main__':
+    main()
