@@ -1,10 +1,12 @@
-from typing import List
+from typing import List, Tuple
 
 
 def optimum_policy(grid: List[List[int]], goal: List[int], cost: float,
-                   possible_actions: List[List[int]], actions_symbols: List[str]) -> List[List[str]]:
+                   possible_actions: List[List[int]], actions_symbols: List[str]
+                   ) -> Tuple[List[List[str]], List[List[float]]]:
     """
-    Applies First Search algorithm to find the optimum path from the initial position to the goal state.
+    Applies Dynamic Programming to calculate the value of every state in the map.
+    With this value matrix, the optimal policy for each state is also calculated.
     Arguments:
         grid: 2D grid, where cells with value 1 are walls and cells with 0 are navigable spaces
         goal: List of 2 integers representing the x and y positions of the goal state
@@ -26,18 +28,19 @@ def optimum_policy(grid: List[List[int]], goal: List[int], cost: float,
                 # If x and y are goal state set value to 0 and set the symbol to *
                 if goal[0] == x and goal[1] == y:
                     if value[x][y] > 0:
+                        change = True
                         value[x][y] = 0
                         policy[x][y] = '*'
-                        change = True
 
                 elif grid[x][y] == 0:
+
                     # If the cell is a navigable one, perform all the possible actions from that state
                     for a in range(len(possible_actions)):
                         x2 = x + possible_actions[a][0]
                         y2 = y + possible_actions[a][1]
 
                         # Check that the expanded state falls into the grid and that is a valid state
-                        if 0 <= x2 < len(grid) and 0 <= y2 < len(grid[0]) and grid[x2][y2] == 0:
+                        if (0 <= x2 < len(grid) and 0 <= y2 < len(grid[0])) and grid[x2][y2] == 0:
                             # Update new value for x and y state as the previous state value
                             # plus the cost of taking a step
                             v2 = value[x2][y2] + cost
@@ -50,7 +53,7 @@ def optimum_policy(grid: List[List[int]], goal: List[int], cost: float,
                                 value[x][y] = v2
                                 policy[x][y] = actions_symbols[a]
 
-    return policy
+    return policy, value
 
 
 def main():
@@ -67,8 +70,14 @@ def main():
     cost = 1  # the cost associated with moving from a cell to an adjacent one
     action_symbols = ['^', '<', 'v', '>']
 
-    policy = optimum_policy(grid, goal, cost, possible_actions, action_symbols)
+    policy, value = optimum_policy(grid, goal, cost, possible_actions, action_symbols)
+    print(f'Policy: ')
     for row in policy:
+        print(row)
+    print('\n')
+
+    print(f'Value Matrix: ')
+    for row in value:
         print(row)
 
 
