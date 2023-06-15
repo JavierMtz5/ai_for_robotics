@@ -75,7 +75,7 @@ def search(grid: List[List[int]], init: List[int], goal: List[int], cost: float,
     return policy
 
 
-def main():
+def main() -> None:
     grid = [[0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 0, 0],
             [0, 0, 1, 0, 1, 0],

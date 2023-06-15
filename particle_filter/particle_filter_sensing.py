@@ -3,7 +3,7 @@ from math import *
 from robot import Robot
 
 
-def main():
+def main() -> None:
     world_size_data = 100.0
     landmarks_data = [[0.0, 100.0], [0.0, 0.0], [100.0, 0.0], [100.0, 100.0]]
     length = 20.

@@ -56,7 +56,7 @@ def optimum_policy(grid: List[List[int]], goal: List[int], cost: float,
     return policy, value
 
 
-def main():
+def main() -> None:
     grid = [[0, 1, 0, 0, 0, 0],
             [0, 1, 0, 0, 0, 0],
             [0, 1, 0, 0, 0, 0],

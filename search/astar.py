@@ -86,7 +86,7 @@ def search(grid: List[List[int]], init: List[int], goal: List[int],
     return expand, policy
 
 
-def main():
+def main() -> None:
     grid = [[0, 1, 0, 0, 0, 0],
             [0, 1, 0, 0, 0, 0],
             [0, 1, 0, 0, 0, 0],

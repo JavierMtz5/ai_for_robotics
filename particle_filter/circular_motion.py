@@ -16,7 +16,8 @@ def main() -> None:
 
     print(f'Robot 1:    {[myrobot.x, myrobot.y, myrobot.orientation]}')
     for motion in motions_1:
-        myrobot = myrobot.circular_move(motion)
+        steering, distance = motion
+        myrobot.circular_move(steering, distance)
         print(f'Robot 1:    {[myrobot.x, myrobot.y, myrobot.orientation]}')
     print('\n')
 
@@ -29,7 +30,8 @@ def main() -> None:
 
     print(f'Robot 2:    {[myrobot.x, myrobot.y, myrobot.orientation]}')
     for motion in motions_2:
-        myrobot = myrobot.circular_move(motion)
+        steering, distance = motion
+        myrobot.circular_move(steering, distance)
         print(f'Robot 2:    {[myrobot.x, myrobot.y, myrobot.orientation]}')
 
 

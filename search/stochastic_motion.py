@@ -91,7 +91,7 @@ def stochastic_value(grid: List[List[int]], goal: List[int], cost_step: float,
     return value, policy
 
 
-def main():
+def main() -> None:
     possible_actions = [[-1, 0],  # go up
                         [0, -1],  # go left
                         [1, 0],  # go down

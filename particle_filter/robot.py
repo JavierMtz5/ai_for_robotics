@@ -1,13 +1,15 @@
 import random
-from typing import List
+from typing import List, Union
 from math import *
 
 
 class Robot:
     """Robot class which represents a simulated robot"""
-    def __init__(self, world_size: float, landmarks: List[List[float]], length: float = 5.):
-        self.x = random.random() * world_size
-        self.y = random.random() * world_size
+    def __init__(self, world_size: Union[float, None] = None,
+                 landmarks: Union[List[List[float]], None] = None,
+                 length: float = 5.):
+        self.x = random.random() * world_size if world_size else 0.
+        self.y = random.random() * world_size if world_size else 0.
         self.orientation = random.random() * 2.0 * pi
         self.length = length
         self.forward_noise = 0.0
@@ -16,6 +18,7 @@ class Robot:
         self.bearing_noise = 0.0
         self.steering_noise = 0.0
         self.distance_noise = 0.0
+        self.steering_drift = 0.0
 
         self.world_size = world_size
         self.landmarks = landmarks
@@ -44,6 +47,12 @@ class Robot:
         self.bearing_noise = bearing_noise
         self.steering_noise = steering_noise
         self.distance_noise = distance_noise
+
+    def set_steering_drift(self, drift):
+        """
+        Sets the systematical steering drift parameter
+        """
+        self.steering_drift = drift
 
     def sense(self) -> List[float]:
         """
@@ -76,8 +85,8 @@ class Robot:
     def move(self, turn: float, forward: float):
         """
         Performs the motion defined by the parameters on the current robot, and returns a new Robot
-        instance with the new position and orientation reached. Rotation is first applied, and forward
-        movement is then included.
+        instance with the new position and orientation reached.
+        Rotation is first applied, and forward movement is then applied.
         """
         if forward < 0:
             raise ValueError('Robot cant move backwards')
@@ -99,44 +108,57 @@ class Robot:
 
         return robot
 
-    def circular_move(self, motion: List[float]):
+    def circular_move(self, steering: float, distance: float,
+                      tolerance: float = 0.001, max_steering_angle: float = pi/4.):
         """
         Performs the movement defined by the motion parameter, and returns a new Robot
-        instance with the new position and orientation reached. Instead of a forward motion,
-        this method allows for forward motion while keeping certain steering angle
+        instance with the new position and orientation reached.
+        Instead of a forward motion, this method allows for forward motion
+        while keeping certain steering angle
         Arguments:
-            motion: list containing the motion [steering_angle, distance]
+            steering: steering angle in radians
+            distance: motion distance
+            tolerance: if the turning angle beta is lower than this value,
+            the motion is considered a forward motion
+            max_steering_angle: maximum steering angle
         """
-        # Calculate beta: the turning angle
-        beta = motion[1] * tan(motion[0]) / self.length
+        # If steering or distance have invalid values, set valid values
+        if steering > max_steering_angle:
+            steering = max_steering_angle
+        elif steering < -max_steering_angle:
+            steering = -max_steering_angle
+        if distance < 0.0:
+            distance = 0.0
 
-        # If beta is lower than 0.001, a forward motion is considered
-        if abs(beta) < 0.001:
-            x = self.x + (cos(self.orientation) * motion[1])
-            y = self.y + (sin(self.orientation) * motion[1])
+        # Apply noise to the steering angle and the distance
+        steering = random.gauss(steering, self.steering_noise)
+        distance = random.gauss(distance, self.distance_noise)
+
+        # Apply steering drift
+        steering += self.steering_drift
+
+        # Calculate beta: the turning angle
+        beta = (distance * tan(steering)) / self.length
+
+        # If beta is lower than 0.001, a forward motion is approximated
+        if abs(beta) < tolerance:
+            self.x += cos(self.orientation) * distance
+            self.y += sin(self.orientation) * distance
+            self.orientation = (self.orientation + beta) % (2 * pi)
 
         # Else, a circular motion is considered
         else:
             # Calculate the radius of the circular motion
-            radius = motion[1] / beta
+            radius = distance / beta
 
             # Calculate the x and y coordinates of the center about which the robot rotates
             cx = self.x - sin(self.orientation) * radius
             cy = self.y + cos(self.orientation) * radius
 
-            # Calculate new x and y coordinates
-            x = cx + sin(self.orientation + beta) * radius
-            y = cy - cos(self.orientation + beta) * radius
-
-        orientation = self.orientation + beta
-        orientation %= 2 * pi
-
-        robot = Robot(self.world_size, self.landmarks, self.length)
-        robot.set(x, y, orientation)
-        robot.set_noise(self.forward_noise, self.turn_noise, self.sense_noise,
-                        self.bearing_noise, self.steering_noise, self.distance_noise)
-
-        return robot
+            # Calculate new x, y and orientation
+            self.orientation = (self.orientation + beta) % (2. * pi)
+            self.x = cx + sin(self.orientation) * radius
+            self.y = cy - cos(self.orientation) * radius
 
     @staticmethod
     def gaussian(mu: float, sigma: float, val: float) -> float:
@@ -158,3 +180,25 @@ class Robot:
             prob *= self.gaussian(distance, self.sense_noise, measurement[i])
 
         return prob
+
+    def cte(self, radius: float) -> float:
+        """
+        Computes the crosstrack error of the robot.
+        Arguments:
+            radius: The radius of the track that the robot is navigating
+        """
+        cte = 0.
+        # If the robot is moving in the left side of the track
+        if self.x <= radius:
+            cte = sqrt((self.x - radius) ** 2 + (self.y - radius) ** 2) - radius
+        # If the robot is moving in the right side of the track
+        elif self.x >= 3 * radius:
+            cte = sqrt((self.x - 3 * radius) ** 2 + (self.y - radius) ** 2) - radius
+        # If the robot is moving in the down side of the track, moving left
+        elif 3 * radius > self.x >= radius > self.y:
+            cte = -1 * self.y
+        # If the robot is moving in the upper side of the track, moving right
+        elif radius <= self.x < 3 * radius and self.y > radius:
+            cte = self.y - 2 * radius
+
+        return cte

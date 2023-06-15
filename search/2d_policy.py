@@ -88,7 +88,7 @@ def optimum_policy2D(
     return policy2D
 
 
-def main():
+def main() -> None:
     possible_orientations = [[-1, 0],  # go up
                              [0, -1],  # go left
                              [1, 0],  # go down

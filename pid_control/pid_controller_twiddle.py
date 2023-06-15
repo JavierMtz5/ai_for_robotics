@@ -1,154 +1,89 @@
-# ----------------
-# User Instructions
-#
-# Implement twiddle as shown in the previous two videos.
-# Your accumulated error should be very small!
-#
-# You don't have to use the exact values as shown in the video
-# play around with different values! This quiz isn't graded just see
-# how low of an error you can get.
-#
-# Try to get your error below 1.0e-10 with as few iterations
-# as possible (too many iterations will cause a timeout).
-#
-# No cheating!
-# ------------
-
-import random
 import numpy as np
+from typing import List, Tuple
 import matplotlib.pyplot as plt
+from particle_filter.robot import Robot
 
 
-# ------------------------------------------------
-#
-# this is the Robot class
-#
-
-class Robot(object):
-    def __init__(self, length=20.0):
-        """
-        Creates robot and initializes location/orientation to 0, 0, 0.
-        """
-        self.x = 0.0
-        self.y = 0.0
-        self.orientation = 0.0
-        self.length = length
-        self.steering_noise = 0.0
-        self.distance_noise = 0.0
-        self.steering_drift = 0.0
-
-    def set(self, x, y, orientation):
-        """
-        Sets a robot coordinate.
-        """
-        self.x = x
-        self.y = y
-        self.orientation = orientation % (2.0 * np.pi)
-
-    def set_noise(self, steering_noise, distance_noise):
-        """
-        Sets the noise parameters.
-        """
-        # makes it possible to change the noise parameters
-        # this is often useful in particle filters
-        self.steering_noise = steering_noise
-        self.distance_noise = distance_noise
-
-    def set_steering_drift(self, drift):
-        """
-        Sets the systematical steering drift parameter
-        """
-        self.steering_drift = drift
-
-    def move(self, steering, distance, tolerance=0.001, max_steering_angle=np.pi / 4.0):
-        """
-        steering = front wheel steering angle, limited by max_steering_angle
-        distance = total distance driven, most be non-negative
-        """
-        if steering > max_steering_angle:
-            steering = max_steering_angle
-        if steering < -max_steering_angle:
-            steering = -max_steering_angle
-        if distance < 0.0:
-            distance = 0.0
-
-        # apply noise
-        steering2 = random.gauss(steering, self.steering_noise)
-        distance2 = random.gauss(distance, self.distance_noise)
-
-        # apply steering drift
-        steering2 += self.steering_drift
-
-        # Execute motion
-        turn = np.tan(steering2) * distance2 / self.length
-
-        if abs(turn) < tolerance:
-            # approximate by straight line motion
-            self.x += distance2 * np.cos(self.orientation)
-            self.y += distance2 * np.sin(self.orientation)
-            self.orientation = (self.orientation + turn) % (2.0 * np.pi)
-        else:
-            # approximate bicycle model for motion
-            radius = distance2 / turn
-            cx = self.x - (np.sin(self.orientation) * radius)
-            cy = self.y + (np.cos(self.orientation) * radius)
-            self.orientation = (self.orientation + turn) % (2.0 * np.pi)
-            self.x = cx + (np.sin(self.orientation) * radius)
-            self.y = cy - (np.cos(self.orientation) * radius)
-
-    def __repr__(self):
-        return '[x=%.5f y=%.5f orient=%.5f]' % (self.x, self.y, self.orientation)
-
-
-############## ADD / MODIFY CODE BELOW ####################
-# ------------------------------------------------------------------------
-#
-# run - does a single control run
-
-
-def make_robot():
+def make_robot() -> Robot:
     """
-    Resets the robot back to the initial position and drift.
-    You'll want to call this after you call `run`.
+    Creates a Robot instance with starting position (x=0, y=1, orientation=0), and
+    sets the steering drift to 10 degrees
     """
-    robot = Robot()
-    robot.set(0.0, 1.0, 0.0)
-    robot.set_steering_drift(10.0 / 180.0 * np.pi)
-    return robot
+    new_robot = Robot()
+    new_robot.set(0.0, 1.0, 0.0)
+    new_robot.set_steering_drift((10.0 * np.pi) / 180.0)
+    return new_robot
 
 
-# NOTE: We use params instead of tau_p, tau_d, tau_i
-def run(robot, params, n=100, speed=1.0):
-    x_trajectory = []
-    y_trajectory = []
-    err = 0
-    prev_cte = robot.y
-    int_cte = 0
+def run(robot: Robot, params: List[float], n: int = 100, speed: float = 1.0
+        ) -> Tuple[List[float], List[float], float]:
+    """
+    Performs a robot run of 2*n timesteps where the steering angle is given by a PID controller.
+    The goal is to keep the robot as close as possible to y = 0, starting from y = 1 position
+    Arguments:
+        robot: Robot instance
+        params: List containing the values for tau_p, tau_i and tau_d
+        n: number of steps to take by the robot
+        speed: distance travelled per time step
+    """
+    # Initialize the error to 0, and the lists to store the x and y coordinates visited by the robot
+    x_trajectory, y_trajectory = list(), list()
+    error = 0
+    prev_cte = robot.y  # Previous y is set to current y for the first timestep
+    int_cte = 0         # The integral value is initialized to 0
+
     for i in range(2 * n):
+
+        # cte is the current position of the robot in the y axis
         cte = robot.y
+
+        # Calculate the differential part of the PID Controller as (y_t - y_t-1)
         diff_cte = cte - prev_cte
+        # Calculate the integral part of the PID Controller as (sum([y_0, y_1, y_2, .., y_t]))
         int_cte += cte
+
         prev_cte = cte
+        # Calculate steering angle with PID controller and apply the movement on the robot
         steer = -params[0] * cte - params[1] * diff_cte - params[2] * int_cte
-        robot.move(steer, speed)
+        robot.circular_move(steer, speed)
+
+        # Save the new x and y coordinates after performing the motion
         x_trajectory.append(robot.x)
         y_trajectory.append(robot.y)
         if i >= n:
-            err += cte ** 2
-    return x_trajectory, y_trajectory, err / n
+            error += cte ** 2
+
+    return x_trajectory, y_trajectory, error / n
 
 
-# Make this tolerance bigger if you are timing out!
-def twiddle(tol=0.2):
+def twiddle(tol: float = 0.2, use_parameters: Tuple[bool, bool, bool] = (True, True, True)
+            ) -> Tuple[List[float], float]:
+    """
+    Twiddle algorithm. Optimizes the values of the three parameters involved in the PID controller:
+    tau_p, tau_i and tau_d.
+    Arguments:
+        tol: Tolerance. If the sum of the dp parameters is higher than tolerance,
+        Twiddle algorithm is finished
+        use_parameters: Tuple of boolean indicating whether to use each of the parameters
+        in the optimization process. [tau_p, tau_i, tau_d]
+    """
     # Don't forget to call `make_robot` before every call of `run`!
+    # Initialize all parameters to 0 and the dp parameters to 1
     p = [0.0, 0.0, 0.0]
-    dp = [1.0, 1.0, 1.0]
+    dp = [1.0 if use_parameters[_] else 0. for _ in range(len(p))]
+
+    # Create a robot and make a run to get the error
     robot = make_robot()
     x_trajectory, y_trajectory, best_err = run(robot, p)
-    # TODO: twiddle loop here
 
     while sum(dp) > tol:
+
         for i in range(len(p)):
+
+            # Only optimize the parameters given by the use_parameters method parameter
+            if not use_parameters[i]:
+                continue
+
             p[i] += dp[i]
             robot = make_robot()
             _, _, err = run(robot, p)
@@ -169,12 +104,22 @@ def twiddle(tol=0.2):
     return p, best_err
 
 
-params, err = twiddle()
-print("Final twiddle error = {}".format(err))
-robot = make_robot()
-x_trajectory, y_trajectory, err = run(robot, params)
-n = len(x_trajectory)
+def main() -> None:
 
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 8))
-ax1.plot(x_trajectory, y_trajectory, 'g', label='Twiddle PID controller')
-ax1.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    # Calculate the optimal parameters with Twiddle for PID Controller
+    params, err = twiddle(0.2)
+    print(f"Final twiddle error = {err}. Final parameters (tau_p, tau_i, tau_d): {params}")
+
+    # Make a run with the optimal parameters for the PID controller
+    robot = make_robot()
+    x_trajectory, y_trajectory, err = run(robot, params)
+    n = len(x_trajectory)
+
+    fig, ax1 = plt.subplots(1, 1, figsize=(8, 8))
+    ax1.plot(x_trajectory, y_trajectory, 'g', label='Twiddle PID controller')
+    ax1.plot(x_trajectory, np.zeros(n), 'r', label='reference')
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
