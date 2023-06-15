@@ -7,7 +7,8 @@ class Robot:
     """Robot class which represents a simulated robot"""
     def __init__(self, world_size: Union[float, None] = None,
                  landmarks: Union[List[List[float]], None] = None,
-                 length: float = 5.):
+                 length: float = 5., measurement_range: float = -1.,
+                 motion_noise: float = 0., measurement_noise: float = 0.):
         self.x = random.random() * world_size if world_size else 0.
         self.y = random.random() * world_size if world_size else 0.
         self.orientation = random.random() * 2.0 * pi
@@ -19,9 +20,21 @@ class Robot:
         self.steering_noise = 0.0
         self.distance_noise = 0.0
         self.steering_drift = 0.0
+        self.measurement_noise = measurement_noise
+        self.measurement_range = measurement_range
+        self.motion_noise = motion_noise
 
         self.world_size = world_size
         self.landmarks = landmarks
+        self.num_landmarks = len(self.landmarks) if self.landmarks else 0
+
+    def make_landmarks(self, num_landmarks: int) -> None:
+        """Creates random landmarks in the world"""
+        self.landmarks = []
+        for i in range(num_landmarks):
+            self.landmarks.append([round(random.random() * self.world_size),
+                                   round(random.random() * self.world_size)])
+        self.num_landmarks = num_landmarks
 
     def set(self, new_x: float, new_y: float, new_orientation: float) -> None:
         """Allows to set the new position (x, y) of the robot as well as its new orientation"""
@@ -54,14 +67,14 @@ class Robot:
         """
         self.steering_drift = drift
 
-    def sense(self) -> List[float]:
+    def sense_absolute_distance(self) -> List[float]:
         """
         Computes the distance between the different landmarks and the robot, and adds
         some gaussian noise (according to sense_noise attribute) to those distances to
         simulate the stochastic behavior of sensing.
         """
         z = list()
-        for i in range(len(self.landmarks)):
+        for i in range(self.num_landmarks):
             # Compute distance from robot to landmark
             distance = sqrt((self.x - self.landmarks[i][0]) ** 2 + (self.y - self.landmarks[i][1]) ** 2)
             # Add sensing noise to the distance
@@ -69,6 +82,21 @@ class Robot:
             z.append(distance)
 
         return z
+
+    def sense_x_y(self) -> List[List[float]]:
+        """
+        Senses the x and y distance from the robot to the landmarks.
+        If one of the distances are out of range the measurement is not included in the return
+        """
+        Z = []
+        # For each landmark, calculate de x and y distance from the robot to the landmark
+        # If the distance falls inside the measurement range, append dx, dy and the landmark index to Z
+        for i in range(self.num_landmarks):
+            dx = self.landmarks[i][0] - self.x + (random.random() * 2. - 1.) * self.measurement_noise
+            dy = self.landmarks[i][1] - self.y + (random.random() * 2. - 1.) * self.measurement_noise
+            if self.measurement_range < 0.0 or abs(dx) + abs(dy) <= self.measurement_range:
+                Z.append([i, dx, dy])
+        return Z
 
     def sense_bearing(self):
         """Returns the bearings of the robot to each of the landmarks"""
@@ -82,11 +110,12 @@ class Robot:
 
         return z
 
-    def move(self, turn: float, forward: float):
+    def move(self, turn: float, forward: float, cyclic_world: bool = False) -> bool:
         """
         Performs the motion defined by the parameters on the current robot, and returns a new Robot
         instance with the new position and orientation reached.
         Rotation is first applied, and forward movement is then applied.
+        If the motion leads to a valid new position the method returns True, otherwise returns False
         """
         if forward < 0:
             raise ValueError('Robot cant move backwards')
@@ -96,17 +125,24 @@ class Robot:
         orientation %= 2 * pi
 
         # Move and add forwarding noise
+        # TODO: self.motion_noise initialize to 0?
         distance = float(forward) + random.gauss(0.0, self.forward_noise)
-        x = (self.x + (cos(orientation) * distance)) % self.world_size
-        y = (self.y + (sin(orientation) * distance)) % self.world_size
+        x = self.x + (cos(orientation) * distance) + (random.random() * 2. - 1.) * self.motion_noise
+        y = self.y + (sin(orientation) * distance) + (random.random() * 2. - 1.) * self.motion_noise
 
-        # Create new Robot instance with the noisy position and orientation reached after the move
-        robot = Robot(self.world_size, self.landmarks)
-        robot.set(x, y, orientation)
-        robot.set_noise(self.forward_noise, self.turn_noise, self.sense_noise,
-                        self.bearing_noise, self.steering_noise, self.distance_noise)
+        if self.world_size and cyclic_world:
+            x %= self.world_size
+            y %= self.world_size
 
-        return robot
+        if self.world_size and not cyclic_world:
+            if 0. > x or x > self.world_size or 0. > y or y > self.world_size:
+                return False
+
+        self.x = x
+        self.y = y
+        self.orientation = orientation
+
+        return True
 
     def circular_move(self, steering: float, distance: float,
                       tolerance: float = 0.001, max_steering_angle: float = pi/4.):
