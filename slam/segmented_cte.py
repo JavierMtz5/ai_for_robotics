@@ -78,7 +78,7 @@ class Planning:
             raise ValueError("Run A* first before smoothing path")
 
         self.smoothed_path = smooth(path=self.optimal_path,
-                                    fix=[0 for _ in range(len(self.optimal_path))],
+                                    fix=[0 if _ not in [0, len(self.optimal_path)-1] else 1 for _ in range(len(self.optimal_path))],
                                     weight_data=weight_data,
                                     weight_smooth=weight_smooth,
                                     tolerance=tolerance)
@@ -152,11 +152,12 @@ class ParticleFilter:
         self.particles = resampled_particles
 
 
-def run(grid, goal, spath, params, steering_noise: float, distance_noise: float,
+def run(grid, goal, smoothed_path, params, steering_noise: float, distance_noise: float,
         measurement_noise: float, speed=0.1, timeout=1000):
     """
     Run localization on a robot
     """
+    print(smoothed_path)
     robot = Robot()
     robot.set(0., 0., 0.)
     robot.set_noise(0., 0., 0., 0., steering_noise, distance_noise, measurement_noise, 0.)
@@ -173,7 +174,7 @@ def run(grid, goal, spath, params, steering_noise: float, distance_noise: float,
         diff_cte = -cte
         estimate = p_filter.get_particles_position()
         x, y, orientation = estimate
-        u, cte = robot.segmented_cte(x, y, spath, index)
+        u, cte = robot.segmented_cte(x, y, smoothed_path, index)
         if u > 1.:
             index += 1
         diff_cte += cte
@@ -217,6 +218,7 @@ def main() -> None:
 
     path = Planning(grid, init, goal)
     path.astar()
+    print(path.optimal_path)
     path.smooth(weight_data, weight_smooth)
     print(run(grid, goal, path.smoothed_path, [p_gain, d_gain],
               steering_n, distance_n, measurement_n))
