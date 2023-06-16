@@ -27,8 +27,8 @@ def online_slam(data: List[List[Union[List[List[float]], List[float]]]],
     # Set initial pose constraint on both Omega and Xi
     omega[0][0] += 1
     omega[1][1] += 1
-    xi[0][0] += world_size / 2.
-    xi[1][0] += world_size / 2.
+    xi[0][0] += 50.
+    xi[1][0] += 50.
 
     # Iterate through every data measured (motion + measurement)
     for data_batch in data:
@@ -42,59 +42,59 @@ def online_slam(data: List[List[Union[List[List[float]], List[float]]]],
             index_L_y = 3 + 2 * measure[0]
 
             # Set measurement constraints on Omega for x-axis
-            omega.value[0][0] += 1. / measurement_noise
-            omega.value[index_L_x][index_L_x] += 1. / measurement_noise
-            omega.value[0][index_L_x] += -1. / measurement_noise
-            omega.value[index_L_x][0] += -1. / measurement_noise
+            omega[0][0] += 1. / measurement_noise
+            omega[index_L_x][index_L_x] += 1. / measurement_noise
+            omega[0][index_L_x] += -1. / measurement_noise
+            omega[index_L_x][0] += -1. / measurement_noise
 
             # Set measurement constraints on Xi for x-axis
-            xi.value[0][0] += -1. * measure[1] * (1. / measurement_noise)
-            xi.value[index_L_x][0] += measure[1] / measurement_noise
+            xi[0][0] += -1. * measure[1] * (1. / measurement_noise)
+            xi[index_L_x][0] += measure[1] / measurement_noise
 
             # Set measurement constraints on Omega for y-axis
-            omega.value[1][1] += 1. / measurement_noise
-            omega.value[index_L_y][index_L_y] += 1. / measurement_noise
-            omega.value[1][index_L_y] += -1. / measurement_noise
-            omega.value[index_L_y][1] += -1. / measurement_noise
+            omega[1][1] += 1. / measurement_noise
+            omega[index_L_y][index_L_y] += 1. / measurement_noise
+            omega[1][index_L_y] += -1. / measurement_noise
+            omega[index_L_y][1] += -1. / measurement_noise
 
             # Set measurement constraints on Xi for y-axis
-            xi.value[1][0] += -1. * measure[2] * (1. / measurement_noise)
-            xi.value[index_L_y][0] += measure[2] / measurement_noise
+            xi[1][0] += -1. * measure[2] * (1. / measurement_noise)
+            xi[index_L_y][0] += measure[2] / measurement_noise
 
         # Expand Omega and Xi to hold the constraints for the new motion
-        lst = [_ for _ in range(omega.dimx + 2) if _ not in [2, 3]]
-        omega = omega.expand(omega.dimx + 2, omega.dimy + 2, lst, lst)
-        xi = xi.expand(xi.dimx + 2, xi.dimy, lst, [0])
+        omega = np.insert(omega, [2, 2], 0, axis=0)
+        omega = np.insert(omega, [2, 2], 0, axis=1)
+        xi = np.insert(xi, [2, 2], 0, axis=0)
 
         # Set motion constraint on Omega for x-axis
-        omega.value[0][0] += 1. / motion_noise
-        omega.value[2][0] += -1. / motion_noise
-        omega.value[0][2] += -1. / motion_noise
-        omega.value[2][2] += 1. / motion_noise
+        omega[0][0] += 1. / motion_noise
+        omega[2][0] += -1. / motion_noise
+        omega[0][2] += -1. / motion_noise
+        omega[2][2] += 1. / motion_noise
 
         # Set motion constraint on Xi for x-axis
-        xi.value[0][0] += -1. * dx * (1. / motion_noise)
-        xi.value[2][0] += dx / motion_noise
+        xi[0][0] += -1. * dx * (1. / motion_noise)
+        xi[2][0] += dx / motion_noise
 
         # Set motion constraint on Omega for y-axis
-        omega.value[1][1] += 1. / motion_noise
-        omega.value[1][3] += -1. / motion_noise
-        omega.value[3][3] += 1. / motion_noise
-        omega.value[3][1] += -1. / motion_noise
+        omega[1][1] += 1. / motion_noise
+        omega[1][3] += -1. / motion_noise
+        omega[3][3] += 1. / motion_noise
+        omega[3][1] += -1. / motion_noise
 
         # Set motion constraint on Xi for y-axis
-        xi.value[1][0] += -1. * dy * (1. / motion_noise)
-        xi.value[3][0] += dy / motion_noise
+        xi[1][0] += -1. * dy * (1. / motion_noise)
+        xi[3][0] += dy / motion_noise
 
-        # Resize the matrix to allow rescaling
-        omega_prima = omega.take([_ for _ in range(2, omega.dimx)])
-        xi_prima = xi.take([_ for _ in range(2, omega.dimx)], [0])
-        B = omega.take([0, 1])
-        A = omega.take([0, 1], [_ for _ in range(2, omega.dimx)])
-        C = xi.take([0, 1], [0])
+        # Resize the matrix to the original shape to allow rescaling
+        omega_prima = omega[2:, 2:]
+        xi_prima = xi[2:]
+        A = omega[:2, 2:]
+        B = omega[:2, :2]
+        C = xi[:2]
 
-        omega = omega_prima - A.transpose() * B.inverse() * A
-        xi = xi_prima - A.transpose() * B.inverse() * C
+        omega = np.subtract(omega_prima, A.T @ np.linalg.inv(B) @ A)
+        xi = np.subtract(xi_prima, A.T @ np.linalg.inv(B) @ C)
 
     Omega = omega
     mu = np.linalg.inv(Omega) @ xi
@@ -115,17 +115,20 @@ def main() -> None:
     slam_mu = slam(data, n, num_landmarks, motion_noise, measurement_noise)
 
     # Convert the result to visible data
+    print('Results of GRAPH SLAM')
     for i in range(0, len(slam_mu), 2):
         index_x, index_y = i, i + 1
         if i < len(slam_mu) - num_landmarks * 2:
             print(f'[x={slam_mu[index_x]} y={slam_mu[index_y]}]')
         else:
             print(f'Landmark location: [x={slam_mu[index_x]} y={slam_mu[index_y]}]')
+    print('\n\n')
 
     data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
     scalable_slam_mu, scalable_slam_omega = online_slam(data, num_landmarks, motion_noise, measurement_noise)
 
     # Convert the result to visible data
+    print('Results of SCALABLE GRAPH SLAM')
     for i in range(0, len(scalable_slam_mu), 2):
         index_x, index_y = i, i + 1
         if i < len(scalable_slam_mu) - num_landmarks * 2:

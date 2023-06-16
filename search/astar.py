@@ -1,9 +1,10 @@
 from typing import List, Tuple
 
 
-def search(grid: List[List[int]], init: List[int], goal: List[int],
-           cost: float, heuristic: List[List[float]], possible_actions: List[List[int]],
-           action_symbols: List[str]) -> Tuple[List[List[float]], List[List[str]]]:
+def search_astar(grid: List[List[int]], init: List[int], goal: List[int],
+                 cost: float, heuristic: List[List[float]], possible_actions: List[List[int]],
+                 action_symbols: List[str] = None
+                 ) -> Tuple[List[List[float]], List[List[str]], List[List[int]]]:
     """
     Applies A* algorithm to find the optimum path from the initial position to the goal state.
     Arguments:
@@ -70,10 +71,12 @@ def search(grid: List[List[int]], init: List[int], goal: List[int],
                             closed[x2][y2] = 1
                             actions[x2][y2] = i
 
-    # Initialize grid on which the optimum path will be drawn
+    # Initialize grid on which the optimum path will be drawn, as well as list to store optimal path
     policy = [[' ' for _ in range(len(grid[0]))] for _ in range(len(grid))]
+    optimal_path = list()
     x, y = goal
     policy[x][y] = '*'  # Set symbol for goal state (*)
+    optimal_path.append([x, y])
     # Loop until the initial state is reached
     while x != init[0] or y != init[1]:
         # Apply the inverse action to get the previous state following the optimum path
@@ -81,9 +84,12 @@ def search(grid: List[List[int]], init: List[int], goal: List[int],
         y2 = y - possible_actions[actions[x][y]][1]
         # Set the symbol corresponding to the action taken in the new coordinates
         policy[x2][y2] = action_symbols[actions[x][y]]
+        optimal_path.append([x2, y2])
         x, y = x2, y2
 
-    return expand, policy
+    optimal_path.reverse()
+
+    return expand, policy, optimal_path
 
 
 def main() -> None:
@@ -106,7 +112,7 @@ def main() -> None:
     cost = 1
     actions_symbols = ['^', '<', 'v', '>']
 
-    expand, policy = search(grid, init, goal, cost, heuristic, possible_actions, actions_symbols)
+    expand, policy, optimal_path = search_astar(grid, init, goal, cost, heuristic, possible_actions, actions_symbols)
     print('Order of expanding nodes: ')
     for row in expand:
         print(row)
@@ -115,6 +121,9 @@ def main() -> None:
     print('Optimum policy: ')
     for row in policy:
         print(row)
+    print('\n')
+
+    print('Optimal path: ', optimal_path)
 
 
 if __name__ == '__main__':

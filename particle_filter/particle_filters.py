@@ -34,9 +34,9 @@ def main() -> None:
 
     # Generate n particles with forward_noise 0.05, turn_noise 0.05 and sense noise 5, and store them in list particles
     for _ in range(n):
-        r = Robot(world_size_data, landmarks_data)
-        r.set_noise(0.05, 0.05, 5.0, 0., 0., 0.)
-        particles.append(r)
+        particle = Robot(world_size_data, landmarks_data)
+        particle.set_noise(0.05, 0.05, 5.0, 0., 0., 0., 0., 0.)
+        particles.append(particle)
 
     # Iterate through the Robot's motions and sensings to compute the position of the particles
     for timestep in range(t):

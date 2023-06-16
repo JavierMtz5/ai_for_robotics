@@ -73,6 +73,7 @@ def make_data(n: int,
         complete = (sum(seen) == num_landmarks)
 
     # Print data about final robot and landmark position
+    print('\nGenerated data:')
     for landmark in robot.landmarks:
         print(f'Actual Landmark position: {landmark}')
     print(f'Actual state of the robot: [x={robot.x} y={robot.y}]')

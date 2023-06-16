@@ -1,14 +1,14 @@
 import random
-from typing import List, Union
+from typing import List, Union, Tuple
 from math import *
 
 
 class Robot:
     """Robot class which represents a simulated robot"""
+
     def __init__(self, world_size: Union[float, None] = None,
                  landmarks: Union[List[List[float]], None] = None,
-                 length: float = 5., measurement_range: float = -1.,
-                 motion_noise: float = 0., measurement_noise: float = 0.):
+                 length: float = 5., measurement_range: float = -1.):
         self.x = random.random() * world_size if world_size else 0.
         self.y = random.random() * world_size if world_size else 0.
         self.orientation = random.random() * 2.0 * pi
@@ -20,13 +20,37 @@ class Robot:
         self.steering_noise = 0.0
         self.distance_noise = 0.0
         self.steering_drift = 0.0
-        self.measurement_noise = measurement_noise
+        self.measurement_noise = 0.0
+        self.motion_noise = 0.0
         self.measurement_range = measurement_range
-        self.motion_noise = motion_noise
 
+        self.num_collisions = 0
         self.world_size = world_size
         self.landmarks = landmarks
         self.num_landmarks = len(self.landmarks) if self.landmarks else 0
+
+    def check_collision(self, grid: List[List[int]]) -> bool:
+        """
+        Checks if the robot is colliding with a wall on the grid
+        """
+        for i in range(len(grid)):
+            for j in range(len(grid[0])):
+                if grid[i][j] == 1:
+                    # If the Euclidean distance from the robot to the wall is less than 0.5 it is considered a collision
+                    distance = sqrt((self.x - float(i)) ** 2 +
+                                    (self.y - float(j)) ** 2)
+                    if distance < 0.5:
+                        self.num_collisions += 1
+                        return False
+        return True
+
+    def check_goal(self, goal: List[int], threshold: float = 1.0) -> bool:
+        """
+        Checks if the robot has reached the goal position
+        """
+        # If the Euclidean distance from the robot to the goal is less than tolerance it is considered a success
+        distance = sqrt((float(goal[0]) - self.x) ** 2 + (float(goal[1]) - self.y) ** 2)
+        return distance < threshold
 
     def make_landmarks(self, num_landmarks: int) -> None:
         """Creates random landmarks in the world"""
@@ -38,13 +62,14 @@ class Robot:
 
     def set(self, new_x: float, new_y: float, new_orientation: float) -> None:
         """Allows to set the new position (x, y) of the robot as well as its new orientation"""
-        # Perform checking for new position/orientation
-        if 0 > new_x >= self.world_size:
-            raise ValueError('X coordinate out of bound')
-        if 0 > new_y >= self.world_size:
-            raise ValueError('Y coordinate out of bound')
-        if 0 > new_orientation >= 2 * pi:
-            raise ValueError('Orientation must be in [0..2pi]')
+        # Perform checking for new position/orientation if world size is present
+        if self.world_size:
+            if 0 > new_x >= self.world_size:
+                raise ValueError('X coordinate out of bound')
+            if 0 > new_y >= self.world_size:
+                raise ValueError('Y coordinate out of bound')
+            if 0 > new_orientation >= 2 * pi:
+                raise ValueError('Orientation must be in [0..2pi]')
 
         # Set new position and orientation
         self.x = new_x
@@ -52,7 +77,8 @@ class Robot:
         self.orientation = new_orientation
 
     def set_noise(self, forward_noise: float, turn_noise: float, sensing_noise: float,
-                  bearing_noise: float, steering_noise: float, distance_noise) -> None:
+                  bearing_noise: float, steering_noise: float, distance_noise: float,
+                  measurement_noise: float, motion_noise: float) -> None:
         """Setter for the forward, turn and sensing noise of the robot"""
         self.forward_noise = forward_noise
         self.turn_noise = turn_noise
@@ -60,12 +86,20 @@ class Robot:
         self.bearing_noise = bearing_noise
         self.steering_noise = steering_noise
         self.distance_noise = distance_noise
+        self.measurement_noise = measurement_noise
+        self.motion_noise = motion_noise
 
     def set_steering_drift(self, drift):
         """
         Sets the systematical steering drift parameter
         """
         self.steering_drift = drift
+
+    def sense_robot_position(self) -> List[float]:
+        """
+        Senses the robot position, applying measurement noise
+        """
+        return [random.gauss(coord, self.measurement_noise) for coord in [self.x, self.y]]
 
     def sense_absolute_distance(self) -> List[float]:
         """
@@ -125,7 +159,6 @@ class Robot:
         orientation %= 2 * pi
 
         # Move and add forwarding noise
-        # TODO: self.motion_noise initialize to 0?
         distance = float(forward) + random.gauss(0.0, self.forward_noise)
         x = self.x + (cos(orientation) * distance) + (random.random() * 2. - 1.) * self.motion_noise
         y = self.y + (sin(orientation) * distance) + (random.random() * 2. - 1.) * self.motion_noise
@@ -145,7 +178,7 @@ class Robot:
         return True
 
     def circular_move(self, steering: float, distance: float,
-                      tolerance: float = 0.001, max_steering_angle: float = pi/4.):
+                      tolerance: float = 0.001, max_steering_angle: float = pi / 4.):
         """
         Performs the movement defined by the motion parameter, and returns a new Robot
         instance with the new position and orientation reached.
@@ -201,7 +234,7 @@ class Robot:
         """Calculates the probability of the value parameter for 1-dim Gaussian with mean mu and variance sigma"""
         return exp(- ((mu - val) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
 
-    def measurement_prob(self, measurement):
+    def measurement_prob_landmarks(self, measurement) -> float:
         """
         Compares the sensing of the robot of the landmarks and the actual distance from the robot
         to the landmarks, and computes how probable is for the robot to be in the correct position.
@@ -216,6 +249,18 @@ class Robot:
             prob *= self.gaussian(distance, self.sense_noise, measurement[i])
 
         return prob
+
+    def measurement_prob_robot_position(self, measurement: List[float]) -> float:
+        """
+        Calculates the probability of being in the actual state of the robot, given the measurements
+        """
+        measured_x, measured_y = measurement
+
+        # Calculate probability of being in the given measured state (p(x) * p(y))
+        error = self.gaussian(measured_x, self.measurement_noise, self.x)
+        error *= self.gaussian(measured_y, self.measurement_noise, self.y)
+
+        return error
 
     def cte(self, radius: float) -> float:
         """
@@ -238,3 +283,19 @@ class Robot:
             cte = self.y - 2 * radius
 
         return cte
+
+    @staticmethod
+    def segmented_cte(estimated_x: float, estimated_y: float,
+                      smoothed_path: List[List[float]], path_index: int) -> Tuple[float, float]:
+        """
+        Computes the crosstrack error of the robot when travelling through a discrete grid,
+        based on the estimated position of the robot
+        """
+        vx = smoothed_path[path_index+1][0] - smoothed_path[path_index][0]
+        vy = smoothed_path[path_index+1][1] - smoothed_path[path_index][1]
+        rx = estimated_x - smoothed_path[path_index][0]
+        ry = estimated_y - smoothed_path[path_index][1]
+        u = (rx * vx + ry * vy) / (vx * vx + vy * vy)
+        cte = (ry * vx - rx * vy) / (vx ** 2 + vy ** 2)
+        print(path_index, u)
+        return u, cte
