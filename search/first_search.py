@@ -91,6 +91,8 @@ def main() -> None:
     actions_symbols = ['^', '<', 'v', '>']
 
     expand = search(grid, init, goal, cost, possible_actions, actions_symbols)
+    print('\nThe following grid represents the optimal moves for the robot to reach the goal state, \n'
+          'starting from the upper left corner and ending in the lower right corner', end='\n\n')
     for row in expand:
         print(row)
 

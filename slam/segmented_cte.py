@@ -106,7 +106,7 @@ class ParticleFilter:
         for i in range(self.n):
             particle = Robot(length=0.5)
             particle.set(x, y, theta)
-            particle.set_noise(0., 0., 0., 0., steering_noise, distance_noise, measurement_noise, 0.)
+            particle.set_noise(0., 0., 0., steering_noise, distance_noise, measurement_noise, 0.)
             self.particles.append(particle)
 
     def get_particles_position(self) -> List[float]:
@@ -206,7 +206,7 @@ def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]]
     # Initialize Robot and Particle Filter
     robot = Robot(length=0.5)
     robot.set(0., 0., 0.)
-    robot.set_noise(0., 0., 0., 0., steering_noise, distance_noise, measurement_noise, 0.)
+    robot.set_noise(0., 0., 0., steering_noise, distance_noise, measurement_noise, 0.)
     p_filter = ParticleFilter(robot.x, robot.y, robot.orientation, steering_noise,
                               distance_noise, measurement_noise)
 
@@ -237,7 +237,7 @@ def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]]
 
         # Check collision
         if not robot.check_collision(grid):
-            print('##### Collision ####')
+            print(f'Collision detected for robot located in [x={robot.x} y={robot.y} orientation={robot.orientation}')
 
         err += (cte ** 2)
         n += 1

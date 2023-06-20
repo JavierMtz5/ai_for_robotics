@@ -9,7 +9,7 @@ def make_robot() -> Robot:
     Creates a Robot instance with starting position (x=0, y=1, orientation=0), and
     sets the steering drift to 10 degrees
     """
-    new_robot = Robot()
+    new_robot = Robot(length=20.)
     new_robot.set(0.0, 1.0, 0.0)
     new_robot.set_steering_drift((10.0 * np.pi) / 180.0)
     return new_robot
@@ -45,7 +45,7 @@ def run(robot: Robot, params: List[float], n: int = 100, speed: float = 1.0
         prev_cte = cte
         # Calculate steering angle with PID controller and apply the movement on the robot
         steer = -params[0] * cte - params[1] * diff_cte - params[2] * int_cte
-        robot.circular_move(steer, speed)
+        robot = robot.circular_move(steer, speed)
 
         # Save the new x and y coordinates after performing the motion
         x_trajectory.append(robot.x)
@@ -64,10 +64,9 @@ def twiddle(tol: float = 0.2, use_parameters: Tuple[bool, bool, bool] = (True, T
     Arguments:
         tol: Tolerance. If the sum of the dp parameters is higher than tolerance,
         Twiddle algorithm is finished
-        use_parameters: Tuple of boolean indicating whether to use each of the parameters
+        use_parameters: Tuple of booleans indicating what parameters to use
         in the optimization process. [tau_p, tau_i, tau_d]
     """
-    # Don't forget to call `make_robot` before every call of `run`!
     # Initialize all parameters to 0 and the dp parameters to 1
     p = [0.0, 0.0, 0.0]
     dp = [1.0 if use_parameters[_] else 0. for _ in range(len(p))]
@@ -108,15 +107,23 @@ def main() -> None:
 
     # Calculate the optimal parameters with Twiddle for PID Controller
     params, err = twiddle(0.2)
-    print(f"Final twiddle error = {err}. Final parameters (tau_p, tau_i, tau_d): {params}")
+    print(f"\nFinal twiddle error = {err}. Final parameters (tau_p, tau_i, tau_d): {params}")
+    print('\nGreen curve is the Twiddle-optimized PID Controler, and the blue one is a '
+          'randomly initialized PID Controller (tau_p = 2, tau_i = 10, tau_d = 0.5)')
 
     # Make a run with the optimal parameters for the PID controller
     robot = make_robot()
     x_trajectory, y_trajectory, err = run(robot, params)
     n = len(x_trajectory)
 
+    # Make a run with random parameters for the PID controller
+    robot = make_robot()
+    params = [2, 10, .5]
+    x_trajectory_rand, y_trajectory_rand, err_rand = run(robot, params)
+
     fig, ax1 = plt.subplots(1, 1, figsize=(8, 8))
     ax1.plot(x_trajectory, y_trajectory, 'g', label='Twiddle PID controller')
+    ax1.plot(x_trajectory_rand, y_trajectory_rand, 'b', label='Random PID controller')
     ax1.plot(x_trajectory, np.zeros(n), 'r', label='reference')
     plt.show()
 

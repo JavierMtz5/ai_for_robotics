@@ -1,5 +1,5 @@
 import random
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Any
 from math import *
 
 
@@ -156,11 +156,12 @@ class Robot:
 
         return z
 
-    def move(self, turn: float, forward: float, cyclic_world: bool = False) -> bool:
+    def move(self, turn: float, forward: float, cyclic_world: bool = False) -> Tuple[bool, Any]:
         """
         Performs the motion defined by the parameters on the current robot.
         Rotation is first applied, and forward movement is then applied.
-        If the motion leads to a valid new position the method returns True, otherwise returns False
+        If the motion leads to a valid new position the method returns True and a new Robot instance
+        with the new position, otherwise returns False and a Robot instance with same position the original one
         """
         if forward < 0:
             raise ValueError('Robot cant move backwards')
@@ -178,18 +179,29 @@ class Robot:
             x %= self.world_size
             y %= self.world_size
 
+        # Set new Robot with updated position
+        new_robot = Robot(self.world_size, self.landmarks, self.length, self.measurement_range)
+        new_robot.set_noise(self.forward_noise, self.turn_noise, self.bearing_noise,
+                            self.steering_noise, self.distance_noise, self.measurement_noise,
+                            self.motion_noise)
+        new_robot.num_collisions = self.num_collisions
+        new_robot.set_steering_drift(self.steering_drift)
+
         if self.world_size and not cyclic_world:
             if 0. > x or x > self.world_size or 0. > y or y > self.world_size:
-                return False
+                new_robot.x = self.x
+                new_robot.y = self.y
+                new_robot.orientation = self.orientation
+                return False, new_robot
 
-        self.x = x
-        self.y = y
-        self.orientation = orientation
+        new_robot.x = x
+        new_robot.y = y
+        new_robot.orientation = orientation
 
-        return True
+        return True, new_robot
 
     def circular_move(self, steering: float, distance: float,
-                      tolerance: float = 0.001, max_steering_angle: float = pi / 4.):
+                      tolerance: float = 0.001, max_steering_angle: float = pi / 4.) -> Any:
         """
         Performs the movement defined by the motion parameter, and returns a new Robot
         instance with the new position and orientation reached.
@@ -211,12 +223,13 @@ class Robot:
             distance = 0.0
 
         # Make a copy of the Robot instance
-        new_robot = Robot()
-        new_robot.length = self.length
-        new_robot.steering_noise = self.steering_noise
-        new_robot.distance_noise = self.distance_noise
-        new_robot.measurement_noise = self.measurement_noise
+        new_robot = Robot(self.world_size, self.landmarks, self.length, self.measurement_range)
+        new_robot.set(self.x, self.y, self.orientation)
+        new_robot.set_noise(self.forward_noise, self.turn_noise, self.bearing_noise,
+                            self.steering_noise, self.distance_noise, self.measurement_noise,
+                            self.motion_noise)
         new_robot.num_collisions = self.num_collisions
+        new_robot.set_steering_drift(self.steering_drift)
 
         # Apply noise to the steering angle and the distance
         steering = random.gauss(steering, self.steering_noise)
@@ -230,8 +243,8 @@ class Robot:
 
         # If beta is lower than 0.001, a forward motion is approximated
         if abs(beta) < tolerance:
-            new_robot.x += self.x + (cos(self.orientation) * distance)
-            new_robot.y += self.y + (sin(self.orientation) * distance)
+            new_robot.x = self.x + (cos(self.orientation) * distance)
+            new_robot.y = self.y + (sin(self.orientation) * distance)
             new_robot.orientation = (self.orientation + beta) % (2. * pi)
 
         # Else, a circular motion is considered

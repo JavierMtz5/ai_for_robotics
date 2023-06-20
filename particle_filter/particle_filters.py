@@ -26,36 +26,38 @@ def main() -> None:
 
     # Initialize actual Robot
     robot = Robot(world_size_data, landmarks_data)
-    robot = robot.move(0.1, 5.0)
+    _, robot = robot.move(0.1, 5.0, cyclic_world=True)
     n = 1000
     t = 10
 
     particles = list()
 
-    # Generate n particles with forward_noise 0.05, turn_noise 0.05 and sense noise 5, and store them in list particles
+    # Generate n particles with forward_noise 0.05, turn_noise 0.05 and measurement noise 5,
+    # and store them in list particles
     for _ in range(n):
         particle = Robot(world_size_data, landmarks_data)
-        particle.set_noise(0.05, 0.05, 5.0, 0., 0., 0., 0., 0.)
+        particle.set_noise(0.05, 0.05, 0., 0., 0., 5., 0.)
         particles.append(particle)
 
-    # Iterate through the Robot's motions and sensings to compute the position of the particles
+    # Iterate through the Robot's motions and sensing to compute the position of the particles
     for timestep in range(t):
 
         # Perform motion on actual Robot and sense
-        robot = robot.move(0.1, 5.0)
-        sensing = robot.sense()
+        _, robot = robot.move(0.1, 5.0, cyclic_world=True)
+        sensing = robot.sense_absolute_distance()
 
         # Perform motion on particles and update particles list
         particles_after_motion = list()
         for i in range(n):
-            particles_after_motion.append(particles[i].move(0.1, 5.0))
+            _, new_particle = particles[i].move(0.1, 5.0, cyclic_world=True)
+            particles_after_motion.append(new_particle)
         particles = particles_after_motion
 
         # Weight each particle according to how probable it is to be in the actual
         # robot's location, based on the actual robot's sensing
         weighted_particles = list()
         for i in range(n):
-            particle_weight = particles[i].measurement_prob(sensing)
+            particle_weight = particles[i].measurement_prob_landmarks(sensing)
             weighted_particles.append(particle_weight)
 
         # Resample particles with Resampling Wheel algorithm

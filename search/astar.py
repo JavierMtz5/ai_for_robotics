@@ -113,12 +113,12 @@ def main() -> None:
     actions_symbols = ['^', '<', 'v', '>']
 
     expand, policy, optimal_path = search_astar(grid, init, goal, cost, heuristic, possible_actions, actions_symbols)
-    print('Order of expanding nodes: ')
+    print('Order of expanding nodes: ', end='\n\n')
     for row in expand:
         print(row)
     print('\n')
 
-    print('Optimum policy: ')
+    print('Optimum policy: ', end='\n\n')
     for row in policy:
         print(row)
     print('\n')

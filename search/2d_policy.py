@@ -106,6 +106,9 @@ def main() -> None:
 
     policy2D = optimum_policy2D(grid, initial_state, goal, cost, possible_actions,
                                 actions_symbols, possible_orientations)
+    print('\nThe grid represents the optimal steps to take by the robot. "#" means that the robot moves \n'
+          'forward according to the robot orientation, "R" means that the robot turns right and "L" means \n'
+          'that the robot turns left')
     for row in policy2D:
         print(row)
 

@@ -108,6 +108,7 @@ def main() -> None:
 
     value, policy = stochastic_value(grid, goal, cost_step, collision_cost, success_prob,
                                      possible_actions, actions_symbols)
+    print('\nThe Value Matrix represents the cost of reaching the goal state from each cell on the grid')
     print('Value Matrix: ')
     for row in value:
         print(row)

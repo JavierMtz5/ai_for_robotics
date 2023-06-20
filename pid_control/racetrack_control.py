@@ -40,7 +40,7 @@ def run(params, radius, n: int, speed: float) -> Tuple[List[float], List[float],
         steer = - params[0] * crosstrack_error \
                 - params[2] * diff_crosstrack_error \
                 - params[1] * int_crosstrack_error
-        robot.circular_move(steer, speed)
+        robot = robot.circular_move(steer, speed)
 
         # Save the new x and y coordinates after performing the motion
         x_trajectory.append(robot.x)
@@ -67,6 +67,8 @@ def main() -> None:
 
     print(f'\nError during run: {err}')
     plt.plot(x_trajectory, y_trajectory)
+    ax = plt.gca()
+    ax.set_aspect('equal', adjustable='box')
     plt.show()
 
 

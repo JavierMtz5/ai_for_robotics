@@ -119,7 +119,10 @@ def main() -> None:
     for i in range(0, len(slam_mu), 2):
         index_x, index_y = i, i + 1
         if i < len(slam_mu) - num_landmarks * 2:
-            print(f'[x={slam_mu[index_x]} y={slam_mu[index_y]}]')
+            if i == len(slam_mu) - 2 * num_landmarks - 2:
+                print(f'Robot location:    [x={slam_mu[index_x]} y={slam_mu[index_y]}]')
+            else:
+                print(f'[x={slam_mu[index_x]} y={slam_mu[index_y]}]')
         else:
             print(f'Landmark location: [x={slam_mu[index_x]} y={slam_mu[index_y]}]')
     print('\n\n')
@@ -132,7 +135,7 @@ def main() -> None:
     for i in range(0, len(scalable_slam_mu), 2):
         index_x, index_y = i, i + 1
         if i < len(scalable_slam_mu) - num_landmarks * 2:
-            print(f'[x={scalable_slam_mu[index_x]} y={scalable_slam_mu[index_y]}]')
+            print(f'Robot position:    [x={scalable_slam_mu[index_x]} y={scalable_slam_mu[index_y]}]')
         else:
             print(f'Landmark location: [x={scalable_slam_mu[index_x]} y={scalable_slam_mu[index_y]}]')
 

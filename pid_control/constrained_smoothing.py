@@ -91,6 +91,7 @@ def main() -> None:
         plt.plot([coord[0] for coord in path], [coord[1] for coord in path], 'g')
         plt.plot([coord[0] for coord in smoothed_path], [coord[1] for coord in smoothed_path], 'r')
         plt.show()
+        print('\n\n===================================================================================')
 
 
 if __name__ == '__main__':

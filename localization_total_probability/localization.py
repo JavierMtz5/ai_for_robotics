@@ -95,4 +95,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    print('\nThe following matrix represents the probability of the robot being in each cell', end='\n\n')
     main()

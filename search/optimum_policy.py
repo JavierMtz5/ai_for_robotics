@@ -71,11 +71,13 @@ def main() -> None:
     action_symbols = ['^', '<', 'v', '>']
 
     policy, value = optimum_policy(grid, goal, cost, possible_actions, action_symbols)
+    print('\nThe Policy represents the optimal path to follow starting from any cell on the grid')
     print(f'Policy: ')
     for row in policy:
         print(row)
     print('\n')
 
+    print('The Value Matrix represents the cost of reaching the goal state from each cell on the grid')
     print(f'Value Matrix: ')
     for row in value:
         print(row)

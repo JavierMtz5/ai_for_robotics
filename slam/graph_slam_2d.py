@@ -31,10 +31,9 @@ def make_data(n: int,
 
         # Create robot and world landmarks, and set initial position to middle of the world
         robot = Robot(world_size=world_size,
-                      measurement_range=measurement_range,
-                      motion_noise=motion_noise,
-                      measurement_noise=measurement_noise)
+                      measurement_range=measurement_range)
         robot.set(world_size / 2., world_size / 2., 0.)
+        robot.set_noise(0., 0., 0., 0., 0., motion_noise, measurement_noise)
         robot.make_landmarks(num_landmarks)
         seen = [False for _ in range(num_landmarks)]
 
@@ -57,7 +56,8 @@ def make_data(n: int,
             # Set robot on the state required to perform the motion
             robot.set(robot.x, robot.y, orientation)
             # Apply motion to the robot
-            while not robot.move(0, distance):
+            success, robot = robot.move(0, distance)
+            while not success:
                 # if we'd be leaving the robot world, pick instead a new direction
                 orientation = random.random() * 2.0 * pi
                 dx = cos(orientation) * distance
@@ -65,6 +65,8 @@ def make_data(n: int,
 
                 # Set robot on the state required to retry the motion
                 robot.set(robot.x, robot.y, orientation)
+
+                success, robot = robot.move(0, distance)
 
             # Add the movement and the sensing to data list
             data.append([Z, [dx, dy]])
@@ -185,7 +187,10 @@ def main() -> None:
     for i in range(0, len(result), 2):
         index_x, index_y = i, i + 1
         if i < len(result) - num_landmarks*2:
-            print(f'[x={result[index_x]} y={result[index_y]}]')
+            if i == len(result) - 2 * num_landmarks - 2:
+                print(f'Robot location: [x={result[index_x]} y={result[index_y]}]')
+            else:
+                print(f'[x={result[index_x]} y={result[index_y]}]')
         else:
             print(f'Landmark location: [x={result[index_x]} y={result[index_y]}]')
 
