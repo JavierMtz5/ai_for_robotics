@@ -1,9 +1,10 @@
 from math import *
 import random
-from typing import List, Union
+from typing import List, Union, Tuple
 from particle_filter.robot import Robot
 from search.astar import search_astar
 from pid_control.constrained_smoothing import smooth_non_cyclic
+import matplotlib.pyplot as plt
 
 
 class Planning:
@@ -175,7 +176,7 @@ class ParticleFilter:
 
 def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]], params: List[float],
         steering_noise: float, distance_noise: float,
-        measurement_noise: float, speed=0.1, timeout=1000) -> List[Union[bool, int]]:
+        measurement_noise: float, speed=0.1, timeout=1000) -> List[Union[bool, int, List[Tuple[float]]]]:
     """
     Run localization on a robot.
     0. Smoothed path must be previously calculated
@@ -210,6 +211,9 @@ def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]]
     p_filter = ParticleFilter(robot.x, robot.y, robot.orientation, steering_noise,
                               distance_noise, measurement_noise)
 
+    # Initialize list to store the robot's trajectory
+    trajectory = list()
+
     index = 0  # Index into the path
     cte = 0.0  # Track crosstrack error
     err = 0.0  # Track error during localization
@@ -220,6 +224,7 @@ def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]]
         # Calculate steering angle with PID controller, using the cte
         diff_cte = -cte
         x, y, orientation = p_filter.get_particles_position()
+        trajectory.append((x, y))
         u, cte = robot.segmented_cte(x, y, smoothed_path, index)
         if u > 1.:
             index += 1
@@ -242,7 +247,7 @@ def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]]
         err += (cte ** 2)
         n += 1
 
-    return [robot.check_goal(goal), robot.num_collisions, n]
+    return [robot.check_goal(goal), robot.num_collisions, n, trajectory]
 
 
 def main() -> None:
@@ -268,8 +273,16 @@ def main() -> None:
     path.astar()
     path.smooth(weight_data, weight_smooth)
     # Perform navigation on the robot
-    print(run(grid, goal, path.smoothed_path, [p_gain, d_gain],
-              steering_n, distance_n, measurement_n))
+    success, collision_num, steps, trajectory = run(grid, goal, path.smoothed_path, [p_gain, d_gain],
+                                                    steering_n, distance_n, measurement_n)
+    print(f'SUCCESSFUL: {success}')
+    print(f'Number of collisions: {collision_num}')
+    print(f'Number of steps:      {steps}')
+
+    plt.plot([position[0] for position in trajectory], [position[1] for position in trajectory], 'g')
+    plt.plot([position[0] for position in path.smoothed_path], [position[0] for position in path.smoothed_path], 'r')
+    plt.grid()
+    plt.show()
 
 
 if __name__ == '__main__':
