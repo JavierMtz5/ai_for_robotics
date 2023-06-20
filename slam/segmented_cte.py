@@ -219,7 +219,7 @@ def run(grid: List[List[int]], goal: List[int], smoothed_path: List[List[float]]
     err = 0.0  # Track error during localization
     n = 0  # Track number of steps
 
-    while not robot.check_goal(goal) and n < timeout:
+    while not robot.check_goal(goal, threshold=0.5) and n < timeout:
 
         # Calculate steering angle with PID controller, using the cte
         diff_cte = -cte
@@ -279,9 +279,16 @@ def main() -> None:
     print(f'Number of collisions: {collision_num}')
     print(f'Number of steps:      {steps}')
 
-    plt.plot([position[0] for position in trajectory], [position[1] for position in trajectory], 'g')
-    plt.plot([position[0] for position in path.smoothed_path], [position[0] for position in path.smoothed_path], 'r')
-    plt.grid()
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+    ax.plot([position[1] for position in trajectory], [position[0] for position in trajectory],
+            'g', label='Robot Trajectory')
+    ax.plot([position[1] for position in path.smoothed_path], [position[0] for position in path.smoothed_path],
+            'r', label='Smoothed Path')
+    y_vals, x_vals = [0.5 + i for i in range(5)], [0.5 + i for i in range(6)]
+    for x_val, y_val in zip(x_vals, y_vals):
+        ax.axhline(y_val)
+        ax.axvline(x_val)
+    plt.gca().invert_yaxis()
     plt.show()
 
 
