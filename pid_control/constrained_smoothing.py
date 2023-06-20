@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def smooth(path: List[List[float]], fix: List[int], weight_data: float = 0.0,
-           weight_smooth: float = 0.1, tolerance: float = 0.00001) -> List[List[float]]:
+           weight_smooth: float = 0.1, tolerance: float = 0.000001) -> List[List[float]]:
     """
     Smooths the given path considering that some of the path states are fixed.
     Arguments:
@@ -38,9 +38,37 @@ def smooth(path: List[List[float]], fix: List[int], weight_data: float = 0.0,
     return newpath
 
 
+def smooth_non_cyclic(path: List[List[float]], weight_data: float = 0.1,
+                      weight_smooth: float = 0.1, tolerance: float = 0.000001) -> List[List[float]]:
+    """
+    """
+    newpath = copy.deepcopy(path)
+
+    # When the difference between the last smoothed value and the new one is less
+    # than tolerance, the smoothing process ends
+    change = tolerance
+    while change >= tolerance:
+        change = 0.
+        for i in range(1, len(path) - 1):
+            # Update x and y coordinates separately
+            for j in range(len(path[0])):
+                old_smoothed_value = newpath[i][j]
+                # Apply gradient descent to smooth the coordinate
+                newpath[i][j] += weight_data * (path[i][j] - newpath[i][j])
+                newpath[i][j] += weight_smooth * (newpath[i + 1][j] + newpath[i - 1][j] - (2. * newpath[i][j]))
+                if i >= 2:
+                    newpath[i][j] += 0.5 * weight_smooth * (2. * newpath[i - 1][j] - newpath[i - 2][j] - newpath[i][j])
+                if i <= len(path) - 3:
+                    newpath[i][j] += 0.5 * weight_smooth * (2. * newpath[i + 1][j] - newpath[i + 2][j] - newpath[i][j])
+                change += abs(old_smoothed_value - newpath[i][j])
+
+    return newpath
+
+
 def main() -> None:
     paths = [
-        [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, 1], [6, 2], [6, 3], [5, 3], [4, 3], [3, 3], [2, 3], [1, 3], [0, 3], [0, 2], [0, 1]],
+        [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [6, 1], [6, 2], [6, 3], [5, 3], [4, 3], [3, 3], [2, 3],
+         [1, 3], [0, 3], [0, 2], [0, 1]],
         [[0, 0], [2, 0], [4, 0], [4, 2], [4, 4], [2, 4], [0, 4], [0, 2]]
     ]
     fixed_points = [[1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],

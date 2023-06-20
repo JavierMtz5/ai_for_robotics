@@ -53,7 +53,7 @@ class Robot:
         return distance < threshold
 
     def make_landmarks(self, num_landmarks: int) -> None:
-        """Creates random landmarks in the world"""
+        """Creates {num_landmarks} random landmarks in the world"""
         self.landmarks = []
         for i in range(num_landmarks):
             self.landmarks.append([round(random.random() * self.world_size),
@@ -76,13 +76,25 @@ class Robot:
         self.y = new_y
         self.orientation = new_orientation
 
-    def set_noise(self, forward_noise: float, turn_noise: float, sensing_noise: float,
+    def set_noise(self, forward_noise: float, turn_noise: float,
                   bearing_noise: float, steering_noise: float, distance_noise: float,
                   measurement_noise: float, motion_noise: float) -> None:
-        """Setter for the forward, turn and sensing noise of the robot"""
+        """
+        Setter for the different possible noises to be applied on the robot
+        Arguments:
+            forward_noise: noise to be applied in rectilinear motions, so that the robot can
+                move +- the specified distance
+            turn_noise: noise to be applied when rotating, so that the robot can rotate +-
+                the specified angle.
+            bearing_noise: noise to be applied when measuring the bearing angle between the robot orientation
+                and the landmarks
+            steering_noise: noise to be applied to the steering angle
+            distance_noise: noise to be applied to the distance that the robot will travel with a circular motion
+            measurement_noise: noise to be applied for the robot's measurements
+            motion_noise: noise to be applied when robot applied motion
+        """
         self.forward_noise = forward_noise
         self.turn_noise = turn_noise
-        self.sense_noise = sensing_noise
         self.bearing_noise = bearing_noise
         self.steering_noise = steering_noise
         self.distance_noise = distance_noise
@@ -97,14 +109,14 @@ class Robot:
 
     def sense_robot_position(self) -> List[float]:
         """
-        Senses the robot position, applying measurement noise
+        Senses the robot x and y positions, applying measurement noise
         """
         return [random.gauss(coord, self.measurement_noise) for coord in [self.x, self.y]]
 
     def sense_absolute_distance(self) -> List[float]:
         """
         Computes the distance between the different landmarks and the robot, and adds
-        some gaussian noise (according to sense_noise attribute) to those distances to
+        some gaussian noise (according to measurement_noise attribute) to those distances to
         simulate the stochastic behavior of sensing.
         """
         z = list()
@@ -112,14 +124,14 @@ class Robot:
             # Compute distance from robot to landmark
             distance = sqrt((self.x - self.landmarks[i][0]) ** 2 + (self.y - self.landmarks[i][1]) ** 2)
             # Add sensing noise to the distance
-            distance += random.gauss(0.0, self.sense_noise)
+            distance += random.gauss(0.0, self.measurement_noise)
             z.append(distance)
 
         return z
 
     def sense_x_y(self) -> List[List[float]]:
         """
-        Senses the x and y distance from the robot to the landmarks.
+        Senses the x and y distance from the robot to the landmarks with measurement_noise.
         If one of the distances are out of range the measurement is not included in the return
         """
         Z = []
@@ -146,8 +158,7 @@ class Robot:
 
     def move(self, turn: float, forward: float, cyclic_world: bool = False) -> bool:
         """
-        Performs the motion defined by the parameters on the current robot, and returns a new Robot
-        instance with the new position and orientation reached.
+        Performs the motion defined by the parameters on the current robot.
         Rotation is first applied, and forward movement is then applied.
         If the motion leads to a valid new position the method returns True, otherwise returns False
         """
@@ -199,6 +210,14 @@ class Robot:
         if distance < 0.0:
             distance = 0.0
 
+        # Make a copy of the Robot instance
+        new_robot = Robot()
+        new_robot.length = self.length
+        new_robot.steering_noise = self.steering_noise
+        new_robot.distance_noise = self.distance_noise
+        new_robot.measurement_noise = self.measurement_noise
+        new_robot.num_collisions = self.num_collisions
+
         # Apply noise to the steering angle and the distance
         steering = random.gauss(steering, self.steering_noise)
         distance = random.gauss(distance, self.distance_noise)
@@ -207,13 +226,13 @@ class Robot:
         steering += self.steering_drift
 
         # Calculate beta: the turning angle
-        beta = (distance * tan(steering)) / self.length
+        beta = tan(steering) * distance / self.length
 
         # If beta is lower than 0.001, a forward motion is approximated
         if abs(beta) < tolerance:
-            self.x += cos(self.orientation) * distance
-            self.y += sin(self.orientation) * distance
-            self.orientation = (self.orientation + beta) % (2 * pi)
+            new_robot.x += self.x + (cos(self.orientation) * distance)
+            new_robot.y += self.y + (sin(self.orientation) * distance)
+            new_robot.orientation = (self.orientation + beta) % (2. * pi)
 
         # Else, a circular motion is considered
         else:
@@ -221,38 +240,38 @@ class Robot:
             radius = distance / beta
 
             # Calculate the x and y coordinates of the center about which the robot rotates
-            cx = self.x - sin(self.orientation) * radius
-            cy = self.y + cos(self.orientation) * radius
+            cx = self.x - (sin(self.orientation) * radius)
+            cy = self.y + (cos(self.orientation) * radius)
 
             # Calculate new x, y and orientation
-            self.orientation = (self.orientation + beta) % (2. * pi)
-            self.x = cx + sin(self.orientation) * radius
-            self.y = cy - cos(self.orientation) * radius
+            new_robot.orientation = (self.orientation + beta) % (2. * pi)
+            new_robot.x = cx + (sin(new_robot.orientation) * radius)
+            new_robot.y = cy - (cos(new_robot.orientation) * radius)
 
-    @staticmethod
-    def gaussian(mu: float, sigma: float, val: float) -> float:
-        """Calculates the probability of the value parameter for 1-dim Gaussian with mean mu and variance sigma"""
-        return exp(- ((mu - val) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
+        return new_robot
 
-    def measurement_prob_landmarks(self, measurement) -> float:
+    def measurement_prob_landmarks(self, measurement: List[float]) -> float:
         """
-        Compares the sensing of the robot of the landmarks and the actual distance from the robot
+        Compares the sensing of the robot of the landmarks and the actual absolute distance from the robot
         to the landmarks, and computes how probable is for the robot to be in the correct position.
         Arguments:
-            measurement: sensing of the actual robot.
+            measurement: measured absolute distance of the actual robot to each of the landmarks.
         """
         prob = 1.0
         for i in range(len(self.landmarks)):
             # Compute distance between particle/robot and the landmarks
             distance = sqrt((self.x - self.landmarks[i][0]) ** 2 + (self.y - self.landmarks[i][1]) ** 2)
             # Compute probability of being in certain state and sensing those landmark measurements
-            prob *= self.gaussian(distance, self.sense_noise, measurement[i])
+            prob *= self.gaussian(distance, self.measurement_noise, measurement[i])
 
         return prob
 
     def measurement_prob_robot_position(self, measurement: List[float]) -> float:
         """
         Calculates the probability of being in the actual state of the robot, given the measurements
+        of the robot's position
+        Arguments:
+            measurement: List containing the x and y coordinates of the robot, which include measurement noise
         """
         measured_x, measured_y = measurement
 
@@ -264,7 +283,8 @@ class Robot:
 
     def cte(self, radius: float) -> float:
         """
-        Computes the crosstrack error of the robot.
+        Computes the crosstrack error of the robot for a running track-shaped track.
+        The track can be seen in the README.md file
         Arguments:
             radius: The radius of the track that the robot is navigating
         """
@@ -297,5 +317,9 @@ class Robot:
         ry = estimated_y - smoothed_path[path_index][1]
         u = (rx * vx + ry * vy) / (vx * vx + vy * vy)
         cte = (ry * vx - rx * vy) / (vx ** 2 + vy ** 2)
-        print(path_index, u)
         return u, cte
+
+    @staticmethod
+    def gaussian(mu: float, sigma: float, val: float) -> float:
+        """Calculates the probability of the value parameter for 1-dim Gaussian with mean mu and variance sigma"""
+        return exp(- ((mu - val) ** 2) / (sigma ** 2) / 2.0) / sqrt(2.0 * pi * (sigma ** 2))
