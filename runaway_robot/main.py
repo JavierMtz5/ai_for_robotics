@@ -62,150 +62,60 @@ def estimate_next_pos_noisy(measurement: List[float], OTHER: Any = None):
         measurement: List containing x and y coordinates of the measurement
         OTHER: List used to store the estimate, P matrix and measurements of previous motions
     """
-    # dt = 1.
-    # # Initialize Identity matrix and external motion vector
-    # I = np.identity(5)
-    # H = np.array([[1., 0., 0., 0., 0.],
-    #               [0., 1., 0., 0., 0.]])
-    # R = np.array([[measurement_noise, 0.],
-    #               [0., measurement_noise]])
-    #
-    # if not OTHER:
-    #
-    #     # Set initial estimate
-    #     estimate = np.zeros((5, 1))
-    #     # Set initial P uncertainty covariance matrix
-    #     P = np.zeros((5, 5))
-    #     np.fill_diagonal(P, 1000.)
-    #     # Initialize OTHER List
-    #     OTHER = [None, None, []]
-    #
-    # else:
-    #     # Get previous P and estimate from OTHER List
-    #     P, estimate = OTHER[0], OTHER[1]
-    #
-    # measurement_arr = np.array([measurement])
-    # # Measurement update
-    # y = np.subtract(measurement_arr.T, H @ estimate)
-    # S = np.add(H @ P @ H.T, R)
-    # K = P @ H.T @ np.linalg.inv(S)
-    # estimate = np.add(estimate, K @ y)
-    # P = np.subtract(I, K @ H) @ P
-    #
-    # # Get current estimates to construct the transition matrix F
-    # x0, y0, orient0, beta0, vel0 = estimate[0][0], estimate[1][0], estimate[2][0], estimate[3][0], estimate[4][0]
-    # F = np.array([[1., 0., -vel0 * sin(orient0 + beta0), -vel0 * sin(orient0 + beta0), cos(orient0 + beta0)],
-    #               [0., 1., vel0 * cos(orient0 + beta0), vel0 * cos(orient0 + beta0), sin(orient0 + beta0)],
-    #               [0., 0., 1., dt, 0.],
-    #               [0., 0., 0., 1., 0.],
-    #               [0., 0., 0., 0., 1.]])
-    # estimate = np.array([[x0 + vel0 * cos(orient0 + beta0)],
-    #                      [y0 + vel0 * sin(orient0 + beta0)],
-    #                      [(orient0+beta0) % 2*pi],
-    #                      [beta0],
-    #                      [vel0]])
-    #
-    # # Prediction
-    # # estimate = np.add(F @ estimate, u)
-    # P = F @ P @ F.T
-    #
-    # # Store the computed P matrix and estimate, and add the new measurement
-    # OTHER[0], OTHER[1] = P, estimate
-    #
-    # # Get estimate of the position as x and y tuple
-    # xy_estimate = estimate[0][0], estimate[1][0]
-    # return xy_estimate, OTHER
-
-    x1 = measurement[0]
-    y1 = measurement[1]
-
-    if not OTHER:
-        OTHER = [[], [], []]
-        # inital guesses:
-        x0 = 0.
-        y0 = 0.
-        dist0 = 0.
-        theta0 = 0.
-        dtheta0 = 0.
-        # initial uncertainty:
-        P = np.array([[1000., 0., 0., 0., 0.],
-                      [0., 1000., 0., 0., 0.],
-                      [0., 0., 1000., 0., 0.],
-                      [0., 0., 0., 1000., 0.],
-                      [0., 0., 0., 0., 1000.]])
-    else:
-        # pull previous measurement, state variables (x), and uncertainty (P) from OTHER
-        x0 = OTHER[0][0][0]
-        y0 = OTHER[0][1][0]
-        dist0 = OTHER[0][2][0]
-        theta0 = OTHER[0][3][0] % (2 * pi)
-        dtheta0 = OTHER[0][4][0]
-        P = OTHER[1]
-
-    # time step
     dt = 1.
-
-    # state matrix (polar location and angular velocity)
-    x = np.array([[x0], [y0], [dist0], [theta0], [dtheta0]])
-
-    # measurement function:
-    # for the EKF this should be the Jacobian of H, but in this case it turns out to be the same (?)
+    # Initialize Identity matrix I, Measurement Function Matrix H,
+    # Measurement Uncertainty Matrix R and motion vector u
+    I = np.identity(5)
     H = np.array([[1., 0., 0., 0., 0.],
                   [0., 1., 0., 0., 0.]])
-    # measurement uncertainty:
     R = np.array([[measurement_noise, 0.],
                   [0., measurement_noise]])
-    # 5d identity matrix
-    I = np.identity(5)
+    u = np.zeros((5, 1))
 
-    # measurement update
-    Z = np.array([[x1, y1]])
-    y = Z.T - H @ x
+    if not OTHER:
+
+        # Set initial estimate
+        estimate = np.zeros((5, 1))
+        # Set initial P uncertainty covariance matrix
+        P = np.zeros((5, 5))
+        np.fill_diagonal(P, 1000.)
+        # Initialize OTHER List
+        OTHER = [None, None, []]
+
+    else:
+        # Get previous P and estimate from OTHER List
+        P, estimate = OTHER[0], OTHER[1]
+
+    measurement_arr = np.array([measurement])
+
+    # Measurement update
+    y = np.subtract(measurement_arr.T, H @ estimate)
     S = np.add(H @ P @ H.T, R)
     K = P @ H.T @ np.linalg.inv(S)
-    x = np.add(x, (K @ y))
+    estimate = np.add(estimate, K @ y)
     P = np.subtract(I, K @ H) @ P
 
-    # pull out current estimates based on measurement
-    x0 = x[0][0]
-    y0 = x[1][0]
-    dist0 = x[2][0]
-    theta0 = x[3][0]
-    dtheta0 = x[4][0]
-
-    # next state function:
-    # this is now the Jacobian of the transition matrix (F) from the regular Kalman Filter
-    A = np.array([[1., 0., cos(theta0 + dtheta0), -dist0 * sin(theta0 + dtheta0), -dist0 * sin(theta0 + dtheta0)],
-                  [0., 1., sin(theta0 + dtheta0), dist0 * cos(theta0 + dtheta0), dist0 * cos(theta0 + dtheta0)],
-                  [0., 0., 1., 0., 0.],
-                  [0., 0., 0., 1., dt],
+    # Get current estimates to construct the transition matrix F
+    x0, y0, orient0, beta0, vel0 = estimate[0][0], estimate[1][0], estimate[2][0], estimate[3][0], estimate[4][0]
+    F = np.array([[1., 0., -vel0 * sin(orient0 + beta0), -vel0 * sin(orient0 + beta0), cos(orient0 + beta0)],
+                  [0., 1., vel0 * cos(orient0 + beta0), vel0 * cos(orient0 + beta0), sin(orient0 + beta0)],
+                  [0., 0., 1., dt, 0.],
+                  [0., 0., 0., 1., 0.],
                   [0., 0., 0., 0., 1.]])
+    estimate = np.array([[x0 + vel0 * cos(orient0 + beta0)],
+                         [y0 + vel0 * sin(orient0 + beta0)],
+                         [(orient0 + beta0) % (2 * pi)],
+                         [beta0],
+                         [vel0]])
 
-    # calculate new estimate
-    # it's NOT simply the matrix multiplication of transition matrix and estimated state vector
-    # for the EKF just use the state transition formulas the transition matrix was built from
-    x = np.array([[x0 + dist0 * cos(theta0 + dtheta0)],
-                  [y0 + dist0 * sin(theta0 + dtheta0)],
-                  [dist0],
-                  [theta0 + dtheta0],
-                  [dtheta0]])
+    # Prediction
+    P = F @ P @ F.T
 
-    # prediction
-    # x = (F * x) + u
-    P = A * P * A.transpose()
+    # Store the computed P matrix and estimate, and add the new measurement
+    OTHER[0], OTHER[1] = P, estimate
 
-    OTHER[0] = x
-    OTHER[1] = P
-
-    # print "x:"
-    # x.show()
-    # print "P:"
-    # P.show()
-
-    xy_estimate = (x[0][0], x[1][0])
-
-    # You must return xy_estimate (x, y), and OTHER (even if it is None)
-    # in this order for grading purposes.
+    # Get estimate of the position as x and y tuple
+    xy_estimate = estimate[0][0], estimate[1][0]
     return xy_estimate, OTHER
 
 
@@ -228,11 +138,10 @@ def demo_grading(estimate_next_pos_fcn, target_bot, OTHER=None):
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot = target_bot.circular_move(steering=2 * pi / 10, distance=distance)
         true_position = (target_bot.x, target_bot.y)
-        print('Position guess: ', position_guess)
-        print('True position: ', true_position, end='\n\n')
         error = distance_between(position_guess, true_position)
         if error <= distance_tolerance:
             print("You got it right! It took you ", ctr, " steps to localize.")
+            print(f'True position: {true_position} | Estimated position: {position_guess}')
             localized = True
         if ctr == 10:
             print("Sorry, it took you too many steps to localize the target.")
@@ -252,14 +161,74 @@ def demo_grading_noisy(estimate_next_pos_fcn, target_bot, OTHER=None):
         position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
         target_bot = target_bot.circular_move(steering=2 * pi / 34., distance=distance)
         true_position = (target_bot.x, target_bot.y)
-        print('Position guess: ', position_guess)
-        print('True position: ', true_position, end='\n\n')
         error = distance_between(position_guess, true_position)
         if error <= distance_tolerance:
             print("You got it right! It took you ", ctr, " steps to localize.")
+            print(f'True position: {true_position} | Estimated position: {position_guess}')
             localized = True
         if ctr == 1000:
             print("Sorry, it took you too many steps to localize the target.")
+    return localized
+
+
+def demo_grading_visual_noisy(estimate_next_pos_fcn, target_bot, OTHER=None):
+    localized = False
+    distance = 1.5
+    distance_tolerance = 0.01 * distance
+    ctr = 0
+    # if you haven't localized the target bot, make a guess about the next
+    # position, then we move the bot and compare your guess to the true
+    # next position. When you are close enough, we stop checking.
+    # For Visualization
+    import turtle  # You need to run this locally to use the turtle module
+    window = turtle.Screen()
+    window.bgcolor('white')
+    size_multiplier = 25.0  # change Size of animation
+    broken_robot = turtle.Turtle()
+    broken_robot.shape('turtle')
+    broken_robot.color('green')
+    broken_robot.resizemode('user')
+    broken_robot.shapesize(0.1, 0.1, 0.1)
+    measured_broken_robot = turtle.Turtle()
+    measured_broken_robot.shape('circle')
+    measured_broken_robot.color('red')
+    measured_broken_robot.resizemode('user')
+    measured_broken_robot.shapesize(0.1, 0.1, 0.1)
+    prediction = turtle.Turtle()
+    prediction.shape('arrow')
+    prediction.color('blue')
+    prediction.resizemode('user')
+    prediction.shapesize(0.1, 0.1, 0.1)
+    prediction.penup()
+    broken_robot.penup()
+    measured_broken_robot.penup()
+    # End of Visualization
+
+    while not localized and ctr <= 1000:
+        ctr += 1
+        measurement = target_bot.sense_robot_position()
+        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
+        target_bot = target_bot.circular_move(steering=2 * pi / 34., distance=distance)
+        true_position = (target_bot.x, target_bot.y)
+        error = distance_between(position_guess, true_position)
+        if error <= distance_tolerance:
+            print("You got it right! It took you ", ctr, " steps to localize.")
+            print(f'True position: {true_position} | Estimated position: {position_guess}')
+            localized = True
+        if ctr == 1000:
+            print("Sorry, it took you too many steps to localize the target.")
+
+        # More Visualization
+        measured_broken_robot.setheading(target_bot.orientation * 180 / pi)
+        measured_broken_robot.goto(measurement[0] * size_multiplier, measurement[1] * size_multiplier - 200)
+        measured_broken_robot.stamp()
+        broken_robot.setheading(target_bot.orientation * 180 / pi)
+        broken_robot.goto(target_bot.x * size_multiplier, target_bot.y * size_multiplier - 200)
+        broken_robot.stamp()
+        prediction.setheading(target_bot.orientation * 180 / pi)
+        prediction.goto(position_guess[0] * size_multiplier, position_guess[1] * size_multiplier - 200)
+        prediction.stamp()
+        # End of Visualization
     return localized
 
 
@@ -276,10 +245,14 @@ def main_noisy():
     test_target = Robot()
     test_target.set(2.1, 4.3, 0.5)
     test_target.set_noise(0., 0., 0., 0., 0., measurement_noise, 0.)
-
-    demo_grading_noisy(estimate_next_pos_noisy, test_target)
+    # Red dots are the measurements of the Robot, while blue dots are the predictions
+    # made by the Kalman filter
+    demo_grading_visual_noisy(estimate_next_pos_noisy, test_target)
 
 
 if __name__ == '__main__':
     measurement_noise = 0.05 * 1.5
+    print('\nResults for Robot position measuring without noise:')
+    main()
+    print('\nResults for Robot position measuring with noise:')
     main_noisy()
