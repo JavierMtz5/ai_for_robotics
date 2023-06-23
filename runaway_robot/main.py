@@ -54,12 +54,13 @@ def estimate_next_pos(measurement: List[float], OTHER: Any = None):
     return xy_estimate, OTHER
 
 
-def estimate_next_pos_noisy(measurement: List[float], OTHER: Any = None):
+def estimate_next_pos_noisy(measurement: List[float], measurement_noise: float, OTHER: Any = None):
     """
     Estimate the next (x, y) position of the wandering Traxbot
     based on noisy (x, y) measurements
     Arguments:
         measurement: List containing x and y coordinates of the measurement
+        measurement_noise: measurement noise
         OTHER: List used to store the estimate, P matrix and measurements of previous motions
     """
     dt = 1.
@@ -70,7 +71,6 @@ def estimate_next_pos_noisy(measurement: List[float], OTHER: Any = None):
                   [0., 1., 0., 0., 0.]])
     R = np.array([[measurement_noise, 0.],
                   [0., measurement_noise]])
-    u = np.zeros((5, 1))
 
     if not OTHER:
 
@@ -153,12 +153,13 @@ def demo_grading_noisy(estimate_next_pos_fcn, target_bot, OTHER=None):
     localized = False
     distance = 1.5
     distance_tolerance = 0.01 * distance
+    measurement_noise = 0.05 * distance
     ctr = 0
 
     while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense_robot_position()
-        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(measurement, measurement_noise, OTHER)
         target_bot = target_bot.circular_move(steering=2 * pi / 34., distance=distance)
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
@@ -175,6 +176,7 @@ def demo_grading_visual_noisy(estimate_next_pos_fcn, target_bot, OTHER=None):
     localized = False
     distance = 1.5
     distance_tolerance = 0.01 * distance
+    measurement_noise = 0.05 * distance
     ctr = 0
     # if you haven't localized the target bot, make a guess about the next
     # position, then we move the bot and compare your guess to the true
@@ -207,7 +209,7 @@ def demo_grading_visual_noisy(estimate_next_pos_fcn, target_bot, OTHER=None):
     while not localized and ctr <= 1000:
         ctr += 1
         measurement = target_bot.sense_robot_position()
-        position_guess, OTHER = estimate_next_pos_fcn(measurement, OTHER)
+        position_guess, OTHER = estimate_next_pos_fcn(measurement, measurement_noise, OTHER)
         target_bot = target_bot.circular_move(steering=2 * pi / 34., distance=distance)
         true_position = (target_bot.x, target_bot.y)
         error = distance_between(position_guess, true_position)
@@ -251,7 +253,6 @@ def main_noisy():
 
 
 if __name__ == '__main__':
-    measurement_noise = 0.05 * 1.5
     print('\nResults for Robot position measuring without noise:')
     main()
     print('\nResults for Robot position measuring with noise:')
