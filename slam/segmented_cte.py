@@ -1,7 +1,7 @@
 from math import *
 import random
 from typing import List, Union, Tuple
-from particle_filter.robot import Robot
+from utils.robot import Robot
 from search.astar import search_astar
 from pid_control.constrained_smoothing import smooth_non_cyclic
 import matplotlib.pyplot as plt

@@ -2,7 +2,7 @@ from math import *
 import random
 from typing import *
 
-from robot import Robot
+from utils.robot import Robot
 
 
 def evaluate_particles(bot: Robot, particles: List[Robot], world_size: float) -> float:

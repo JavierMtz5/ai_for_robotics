@@ -89,11 +89,21 @@ def main() -> None:
     motions_seq = [[0, 0], [0, 1], [1, 0], [1, 0], [0, 1]]  # Sequence of motions is > v v >
     probs = localize(colors_grid, measurements_seq, motions_seq, sensor_right=0.7, p_move=0.8)
 
+    print('\n')
+    print('Colors Grid:')
+    for row in colors_grid:
+        print(row)
+
+    print('\n')
+    print('Steps taken:  > v v >')
+    print('Colors seen: G G G G G')
+    print('\n')
+
     # Print final probabilities
+    print('The following matrix represents the probability of the robot being in each cell', end='\n\n')
     for prob_row in probs:
         print(prob_row)
 
 
 if __name__ == '__main__':
-    print('\nThe following matrix represents the probability of the robot being in each cell', end='\n\n')
     main()

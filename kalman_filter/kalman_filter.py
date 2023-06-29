@@ -49,9 +49,12 @@ def main() -> None:
     print('\nThe first array represents the expected position and velocity of the robot, respectively. '
           'The second one represents the uncertainty covariance matrix P', end='\n\n')
 
-    print('Solution for measurement sequence 1: ', kalman_filter(measurement_seq_1, x, P, u, F, H, R), end='\n\n')
-    print('Solution for measurement sequence 2: ', kalman_filter(measurement_seq_2, x, P, u, F, H, R), end='\n\n')
-    print('Solution for measurement sequence 3: ', kalman_filter(measurement_seq_3, x, P, u, F, H, R), end='\n\n')
+    print(f'Solution for measurement sequence {measurement_seq_1} :')
+    print(kalman_filter(measurement_seq_1, x, P, u, F, H, R), end='\n\n')
+    print(f'Solution for measurement sequence {measurement_seq_2} :')
+    print(kalman_filter(measurement_seq_2, x, P, u, F, H, R), end='\n\n')
+    print(f'Solution for measurement sequence {measurement_seq_3} :')
+    print(kalman_filter(measurement_seq_3, x, P, u, F, H, R), end='\n\n')
 
 
 if __name__ == '__main__':

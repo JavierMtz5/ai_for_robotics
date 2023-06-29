@@ -1,5 +1,5 @@
 from math import *
-from robot import Robot
+from utils.robot import Robot
 
 
 def main() -> None:

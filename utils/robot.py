@@ -329,6 +329,7 @@ class Robot:
         rx = estimated_x - smoothed_path[path_index][0]
         ry = estimated_y - smoothed_path[path_index][1]
         u = (rx * vx + ry * vy) / (vx * vx + vy * vy)
+        print(vx, vy, rx, ry)
         cte = (ry * vx - rx * vy) / (vx ** 2 + vy ** 2)
         return u, cte
 

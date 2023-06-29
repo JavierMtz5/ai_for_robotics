@@ -118,7 +118,7 @@ def main() -> None:
         print(row)
     print('\n')
 
-    print('Optimum policy: ', end='\n\n')
+    print('Optimal policy: ', end='\n\n')
     for row in policy:
         print(row)
     print('\n')

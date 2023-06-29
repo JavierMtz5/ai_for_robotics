@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 import matplotlib.pyplot as plt
-from particle_filter.robot import Robot
+from utils.robot import Robot
 
 
 def make_robot() -> Robot:

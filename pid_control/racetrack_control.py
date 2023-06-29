@@ -1,7 +1,7 @@
 from math import *
 from typing import List, Tuple
 import matplotlib.pyplot as plt
-from particle_filter.robot import Robot
+from utils.robot import Robot
 
 
 def run(params, radius, n: int, speed: float) -> Tuple[List[float], List[float], float]:

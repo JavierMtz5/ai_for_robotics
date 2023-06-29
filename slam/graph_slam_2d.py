@@ -2,7 +2,7 @@ from math import *
 from typing import List, Union
 import random
 import numpy as np
-from particle_filter.robot import Robot
+from utils.robot import Robot
 
 
 def make_data(n: int,
