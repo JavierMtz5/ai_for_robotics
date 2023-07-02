@@ -69,10 +69,8 @@ as the real robot. After this, for each timestep:
 5. Calculate the mean error of the particles, where each error is calculated as the absolute distance 
 between the particle's real position and the robot's real position.
 
-In the following video the particle filter takes 10 iterations to highly reduce the error and predict the real robot's 
+In the video *doc_images/particle_filter.mp4*  the particle filter takes 10 iterations to highly reduce the error and predict the real robot's 
 location accurately.
-
-<video src="../doc_images/particle_filter.mp4" controls="controls" width="800" height="600"> </video>
 
 </details>
 
