@@ -3,6 +3,7 @@ import random
 from typing import *
 
 from utils.robot import Robot
+import matplotlib.pyplot as plt
 
 
 def evaluate_particles(bot: Robot, particles: List[Robot], world_size: float) -> float:
@@ -23,6 +24,10 @@ def main() -> None:
 
     world_size_data = 100.0
     landmarks_data = [[20.0, 20.0], [80.0, 80.0], [20.0, 80.0], [80.0, 20.0]]
+    # Initialize plot
+    plt.plot(0, 0)
+    plt.ion()
+    plt.show()
 
     # Initialize actual Robot
     robot = Robot(world_size_data, landmarks_data)
@@ -42,16 +47,29 @@ def main() -> None:
     # Iterate through the Robot's motions and sensing to compute the position of the particles
     for timestep in range(t):
 
+        # Get a random turning angle and a random distance to move the robot
+        dist = random.random() * 5
+        turn = random.random()
+
         # Perform motion on actual Robot and sense
-        _, robot = robot.move(0.1, 5.0, cyclic_world=True)
+        _, robot = robot.move(turn, dist, cyclic_world=True)
         sensing = robot.sense_absolute_distance()
 
         # Perform motion on particles and update particles list
         particles_after_motion = list()
         for i in range(n):
-            _, new_particle = particles[i].move(0.1, 5.0, cyclic_world=True)
+            _, new_particle = particles[i].move(turn, dist, cyclic_world=True)
             particles_after_motion.append(new_particle)
         particles = particles_after_motion
+
+        # Clear previous plot and plot the robot's position and the particles position
+        plt.clf()
+        plt.xlim(0, 100)
+        plt.ylim(0, 100)
+        plt.scatter(x=[part.x for part in particles],
+                    y=[part.y for part in particles])
+        plt.scatter(robot.x, robot.y)
+        plt.pause(1.6)
 
         # Weight each particle according to how probable it is to be in the actual
         # robot's location, based on the actual robot's sensing
@@ -74,6 +92,7 @@ def main() -> None:
         particles = resampled_particles
 
         print(f'Particles mean error for timestep {timestep} : {evaluate_particles(robot, particles, world_size_data)}')
+        plt.show()
 
 
 if __name__ == '__main__':

@@ -55,7 +55,7 @@ between the robot's orientation and the position of the landmarks.
 This module creates 1000 particles, which are instances of the Robot class, with the same noise parameters 
 as the real robot. After this, for each timestep:
 
-1. The real robot is moved, and the distance from the robot to each landmark is measured.
+1. The real robot is rotated a random angle and moved for a random distance, and the distance from the robot to each landmark is measured.
 2. The same motion is applied to each particle.
 3. Each particle is weighted by comparing the sensing of the real robot of the landmarks and the
     sensing of each particle fo the landmarks. The probability/weight of each particle is calculated 
@@ -69,9 +69,14 @@ as the real robot. After this, for each timestep:
 5. Calculate the mean error of the particles, where each error is calculated as the absolute distance 
 between the particle's real position and the robot's real position.
 
+In the following video the particle filter takes 10 iterations to highly reduce the error and predict the real robot's 
+location accurately.
+
+<video src="../doc_images/particle_filter.mp4" controls="controls" width="800" height="600"> </video>
+
 </details>
 
 
-|                                      Bearing Sensing                                      |                                       Circular Motion                                       |
-|:-----------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
-| <img src="../doc_images/robot_sense_bearing.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/robot_circular_motion.png" alt="drawing" width="400" height="300"/> |
+|                                      Bearing Sensing                                      |                                       Circular Motion                                       | Particle Filter                                                                                         |
+|:-----------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------|
+| <img src="../doc_images/robot_sense_bearing.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/robot_circular_motion.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/particle_filter.png" alt="drawing" width="400" height="300"/>                   |
