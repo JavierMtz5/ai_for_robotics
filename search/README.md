@@ -1,6 +1,6 @@
 # Search
 
-> This module contains four submodules: **2d_policy**, **astar**, 
+> This module contains five submodules: **2d_policy**, **astar**, 
 > **first_search**, **optimal_policy** and **stochastic_motion**
 
 <details>
