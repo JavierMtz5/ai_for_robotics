@@ -4,14 +4,9 @@
 
 #### The different modules of the repository are explained in detail below.
 
-- Localization with Total Probability
-    - **localization.py**
-- Kalman Filter
-    - **kalman_filter.py**
-- Particle Filter
-    - **particle_filter.py**
-    - **particle_filter_sensing.py**
-    - **circular_motion.py**
+- [Localization with Total Probability](localization_total_probability/README.md)
+- [Kalman Filter](kalman_filter/README.md)
+- [Particle Filter](particle_filter/README.md)
 - Search Algorithms
     - **first_search.py**
     - **astar.py**

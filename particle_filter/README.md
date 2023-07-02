@@ -1,6 +1,9 @@
 # Particle Filter
 
-> This module contains three submodules: **circular_motion**, **particle_filter_sensing** and **particle_filters**
+> This module contains three submodules: **circular_motion**, **particle_filter_sensing** and **particle_filter**
+
+<details>
+    <summary>Circular Motion</summary>
 
 ## Circular Motion
 
@@ -30,6 +33,11 @@ y' = y + sin(\theta) * d
 \theta' = (\theta + \beta) mod 2\pi
 ```
 
+</details>
+
+<details>
+    <summary>Particle Filter Sensing of Landmarks</summary>
+
 ## Particle Filter Sensing
 
 This module is used to test that the **sense_bearing** method of the **Robot** class correctly outputs the angles 
@@ -37,6 +45,33 @@ between the robot's orientation and the position of the landmarks.
 
 ![Alt text](../doc_images/robot_sense_bearing.png?raw=true "Map")
 
+</details>
+
+<details>
+    <summary>Particle Filter Localization</summary>
+
 ## Particle Filter
 
+This module creates 1000 particles, which are instances of the Robot class, with the same noise parameters 
+as the real robot. After this, for each timestep:
 
+1. The real robot is moved, and the distance from the robot to each landmark is measured.
+2. The same motion is applied to each particle.
+3. Each particle is weighted by comparing the sensing of the real robot of the landmarks and the
+    sensing of each particle fo the landmarks. The probability/weight of each particle is calculated 
+    as how likely it is that the real robot's position is the particle's position, following a Gaussian 
+    distribution where the mean is the difference between the distances measured by the real robot and each
+    particle, and the variance is the measurement noise of the robot. 
+    
+    ![Alt text](../doc_images/gaussian_for_particle_filter.png?raw=true "Map")
+
+4. Resample the particles by following the Resampling Wheel algorithm.
+5. Calculate the mean error of the particles, where each error is calculated as the absolute distance 
+between the particle's real position and the robot's real position.
+
+</details>
+
+
+|                                      Bearing Sensing                                      |                                       Circular Motion                                       |
+|:-----------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
+| <img src="../doc_images/robot_sense_bearing.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/robot_circular_motion.png" alt="drawing" width="400" height="300"/> |
