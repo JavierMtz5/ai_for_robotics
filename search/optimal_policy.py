@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 
-def optimum_policy(grid: List[List[int]], goal: List[int], cost: float,
+def optimal_policy(grid: List[List[int]], goal: List[int], cost: float,
                    possible_actions: List[List[int]], actions_symbols: List[str]
                    ) -> Tuple[List[List[str]], List[List[float]]]:
     """
@@ -70,7 +70,7 @@ def main() -> None:
     cost = 1  # the cost associated with moving from a cell to an adjacent one
     action_symbols = ['^', '<', 'v', '>']
 
-    policy, value = optimum_policy(grid, goal, cost, possible_actions, action_symbols)
+    policy, value = optimal_policy(grid, goal, cost, possible_actions, action_symbols)
     print('\nThe Policy represents the optimal path to follow starting from any cell on the grid')
     print(f'Policy: ')
     for row in policy:

@@ -17,12 +17,12 @@ and by the robot's orientation, which is the angle between the robot's orientati
 - The motion depends on the distance that the robot travels per timestep, and the steering angle of the front 
 wheels, which is the angle between the orientation of the front wheels and the orientation of the robot.
 
-![Alt text](../doc_images/robot_circular_motion.png?raw=true "Map")
+![Alt text](../doc_images/particle_filter/robot_circular_motion.png?raw=true "Map")
 
 The equations and diagram used to calculate the position of the robot in the next timestep are shown in 
 the following image:
 
-![Alt text](../doc_images/robot_circular_motion_eq.png?raw=true "Map")
+![Alt text](../doc_images/particle_filter/robot_circular_motion_eq.png?raw=true "Map")
 
 If the turning angle 𝛽 is very low the motion can be considered rectilinear, in which case the following equations 
 are used for calculating the next position and orientation of the robot:
@@ -43,7 +43,7 @@ y' = y + sin(\theta) * d
 This module is used to test that the **sense_bearing** method of the **Robot** class correctly outputs the angles 
 between the robot's orientation and the position of the landmarks.
 
-![Alt text](../doc_images/robot_sense_bearing.png?raw=true "Map")
+![Alt text](../doc_images/particle_filter/robot_sense_bearing.png?raw=true "Map")
 
 </details>
 
@@ -63,7 +63,7 @@ as the real robot. After this, for each timestep:
     distribution where the mean is the difference between the distances measured by the real robot and each
     particle, and the variance is the measurement noise of the robot. 
     
-    ![Alt text](../doc_images/gaussian_for_particle_filter.png?raw=true "Map")
+    ![Alt text](../doc_images/particle_filter/gaussian_for_particle_filter.png?raw=true "Map")
 
 4. Resample the particles by following the Resampling Wheel algorithm.
 5. Calculate the mean error of the particles, where each error is calculated as the absolute distance 
@@ -74,6 +74,7 @@ location accurately.
 
 </details>
 
+# Example Images
 
 |                                      Bearing Sensing                                      |                                       Circular Motion                                       | Particle Filter                                                                                         |
 |:-----------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------|

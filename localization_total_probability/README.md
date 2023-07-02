@@ -16,12 +16,12 @@ values, as long as the noise is low enough, the uncertainty of the robot's local
 
 In this program a map is created with cells painted green or red, as shown in the image. 
 
-![Alt text](../doc_images/localization_prob_grid.png?raw=true "Map")
+![Alt text](../doc_images/localization_total_probability/localization_prob_grid.png?raw=true "Map")
 
 The robot performs 5 movements, and between each of these movements it takes measurements of the color it sees in 
 the new cell it has reached. The sequence of movements and measurements is as follows:
 
-![Alt text](../doc_images/motion_and_sensing_localization.png?raw=true "Motions and Measurements")
+![Alt text](../doc_images/localization_total_probability/motion_and_sensing_localization.png?raw=true "Motions and Measurements")
 
 The goal of the program is to modify the probabilities of being in each cell as the robot moves and takes 
 measurements. In the end, the cell with the highest probability should correctly indicate the final position of the robot. 
@@ -31,7 +31,7 @@ probability that the sensor detects the color correctly of 70%.
 
 The final probabilities after performing the mentioned motions and measurements are:
 
-![Alt text](../doc_images/localization_probabilities.png?raw=true "Localization")
+![Alt text](../doc_images/localization_total_probability/localization_probabilities.png?raw=true "Localization")
 
 As can be seen, the cell with the highest probability is the cell in which the robot is positioned, according to 
 the movements and measurements taken during the path. However, the probability of being in this state is not 100%, 

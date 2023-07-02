@@ -6,7 +6,7 @@ def optimum_policy2D(
         possible_actions: List[int], actions_symbols: List[str], possible_orientation: List[List[int]]
 ) -> List[List[str]]:
     """
-    Applies First Search algorithm to find the optimum path from the initial position to the goal state.
+    Applies Dynamic Programming to find the optimum path from the initial position to the goal state.
     Arguments:
         grid: 2D grid, where cells with value 1 are walls and cells with 0 are navigable spaces
         init: Initial state as 3 element List

@@ -9,7 +9,7 @@ In this problem the robot is only able to measure its position. With its positio
 the Kalman Filter is able to estimate the next position of the robot and the next velocity. The velocity of the 
 robot is considered constant, so the model of the robot (the F transition matrix) is as follows:
 
-![Alt text](../doc_images/transition_matrix.png?raw=true "Map")
+![Alt text](../doc_images/kalman_filter/transition_matrix.png?raw=true "Map")
 
 ##### Case 1
 
