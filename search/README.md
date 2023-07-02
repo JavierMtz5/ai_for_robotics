@@ -54,7 +54,7 @@ optimal path returned by the algorithm is the one shown in the following image:
 This module uses Dynamic Programming to find the optimal policy for reaching a given goal state. The 
 optimal policy returned by the algorithm, and the value of each state, are shown in the following images:
 
-<img src="../doc_images/dynamic_programming_optimal_policy.png" alt="drawing" width="600" height="450"/> <img src="../doc_images/dynamic_programming_values.png" alt="drawing" width="600" height="450"/>
+<img src="../doc_images/search/dynamic_programming_optimal_policy.png" alt="drawing" width="600" height="450"/> <img src="../doc_images/search/dynamic_programming_values.png" alt="drawing" width="600" height="450"/>
 
 </details>
 
@@ -69,17 +69,17 @@ robot moves either rights or left. Because of the stochasticity of the Robot's m
 stochastic collisions when navigating very close to a wall, thus decreasing the value of those states. The optimal 
 policy returned by the algorithm, and the value of each state, are shown in the following images:
 
-<img src="../doc_images/stochastic_motion_policy.png" alt="drawing" width="600" height="450"/> <img src="../doc_images/stochastic_motion_values.png" alt="drawing" width="600" height="450"/>
+<img src="../doc_images/search/stochastic_motion_policy.png" alt="drawing" width="600" height="450"/> <img src="../doc_images/search/stochastic_motion_values.png" alt="drawing" width="600" height="450"/>
 
 </details>
 
 # Example Images
 
-|                                    2D Policy                                    |                                        A* Algorithm                                        | First Search Algorithm                                                                          |
-|:-------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------|
-| <img src="../doc_images/2d_policy.png" alt="drawing" width="400" height="300"/> |  <img src="../doc_images/astar_optimal_path.png" alt="drawing" width="400" height="300"/>  | <img src="../doc_images/first_search_optimal_path.png" alt="drawing" width="400" height="300"/> |
+|                                       2D Policy                                        |                                          A* Algorithm                                           | First Search Algorithm                                                                                 |
+|:--------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------|
+| <img src="../doc_images/search/2d_policy.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/search/astar_optimal_path.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/search/first_search_optimal_path.png" alt="drawing" width="400" height="300"/> |
 
-|                                              Optimal Policy                                              |                                       Stochastic Motion                                        |
-|:--------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|
-| <img src="../doc_images/dynamic_programming_optimal_policy.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/stochastic_motion_policy.png" alt="drawing" width="400" height="300"/> |
+|                                                 Optimal Policy                                                  |                                           Stochastic Motion                                           |
+|:---------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------:|
+| <img src="../doc_images/search/dynamic_programming_optimal_policy.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/search/stochastic_motion_policy.png" alt="drawing" width="400" height="300"/> |
 

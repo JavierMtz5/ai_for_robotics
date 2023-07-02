@@ -118,7 +118,7 @@ def main() -> None:
 
     # Make a run with random parameters for the PID controller
     robot = make_robot()
-    params = [2, 10, .5]
+    params = [1.9, 9, 0.49]
     x_trajectory_rand, y_trajectory_rand, err_rand = run(robot, params)
 
     fig, ax1 = plt.subplots(1, 1, figsize=(8, 8))

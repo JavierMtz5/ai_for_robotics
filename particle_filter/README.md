@@ -76,6 +76,6 @@ location accurately.
 
 # Example Images
 
-|                                      Bearing Sensing                                      |                                       Circular Motion                                       | Particle Filter                                                                                         |
-|:-----------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------|
-| <img src="../doc_images/robot_sense_bearing.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/robot_circular_motion.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/particle_filter.png" alt="drawing" width="400" height="300"/>                   |
+|                                              Bearing Sensing                                              |                                               Circular Motion                                               | Particle Filter                                                                                          |
+|:---------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------|
+| <img src="../doc_images/particle_filter/robot_sense_bearing.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/particle_filter/robot_circular_motion.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/particle_filter/particle_filter.png" alt="drawing" width="400" height="300"/>    |

@@ -7,20 +7,9 @@
 - [Localization with Total Probability](localization_total_probability/README.md)
 - [Kalman Filter](kalman_filter/README.md)
 - [Particle Filter](particle_filter/README.md)
-- Search Algorithms
-    - **first_search.py**
-    - **astar.py**
-    - **optimum_policy.py**
-    - **2d_policy.py**
-    - **stochastic_motion.py**
-- PID Control
-    - **pid_controller_twiddle.py**
-    - **constrained_smoothing.py**
-    - **racetrack_control.py**
-- Linear Graph SLAM
-    - **segmented_cte.py**
-    - **graph_slam_2d.py**
-    - **scalable_graph_slam.py**
+- [Search Algorithms](search/README.md)
+- [PID Control](pid_control/README.md)
+- [Graph SLAM](slam/README.md)
 
 
 > Sebastian Thrun's course "Artificial Intelligence for Robotics": 
