@@ -29,12 +29,13 @@ This module applies the Scalable Graph SLAM algorithm, which works in the same w
 but works with an Omega matrix which only needs to store the localization of the landmarks and the last position 
 of the robot, instead of storing the position of the landmarks and the position of every state visited by the robot. 
 
-The image below shows the real position of both the robot and the landmarks, together with the positions 
-estimated by the Graph SLAM algorithm. The true position of the landmarks are shown as red dots, the true position 
+The image in the left shows the real position of both the robot and the landmarks, together with the positions 
+estimated by the Scalable Graph SLAM algorithm. The true position of the landmarks are shown as red dots, the true 
 position of the robot is shown as a blue dot, the estimate positions for the landmarks are shown as green dots, 
 and the estimate position of the robot is shown as a yellow dot. Finally, the real trajectory followed by the 
-robot is shown in orange. As the Graph SLAM only stores the robot's last state, it is not possible to plot 
-the estimate trajectory of the robot from the SLAM algorithm's output.
+robot is shown in orange. The image in the right shows the same data for the Graph SLAM algorithm.  
+As the Graph SLAM only stores the robot's last state, it is not possible to plot the estimate trajectory of the 
+robot from the SLAM algorithm's output.
 
 <img src="../doc_images/slam/scalable_graph_slam_gslam.png" alt="drawing" width="400" height="400"/> <img src="../doc_images/slam/scalable_graph_slam.png" alt="drawing" width="400" height="400"/>
 
@@ -64,7 +65,7 @@ In the following image the path followed by the Robot is shown in green, and the
 
 # Example Images
 
-|                                              Graph SLAM 2D                                                |                                               Scalable Graph SLAM                                   | Segmented CTE                                                                            |
-|:---------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------|
-|          <img src="../doc_images/slam/graph_slam.png" alt="drawing" width="400" height="300"/>            |        <img src="../doc_images/slam/graph_slam.png" alt="drawing" width="400" height="300"/>        | <img src="../doc_images/slam/graph_slam.png" alt="drawing" width="400" height="300"/>    |
+|                                     Graph SLAM 2D                                     |                                      Scalable Graph SLAM                                       | Segmented CTE                                                                              |
+|:-------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------|
+| <img src="../doc_images/slam/graph_slam.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/slam/scalable_graph_slam.png" alt="drawing" width="400" height="300"/> | <img src="../doc_images/slam/segmented_cte.png" alt="drawing" width="400" height="300"/>   |
 

@@ -28,9 +28,9 @@ If the turning angle 𝛽 is very low the motion can be considered rectilinear, 
 are used for calculating the next position and orientation of the robot:
 
 ```math
-x' = x + cos(\theta) * d
-y' = y + sin(\theta) * d
-\theta' = (\theta + \beta) mod 2\pi
+x' = x + cos(θ) * d
+y' = y + sin(θ) * d
+θ' = (θ + β) mod 2π
 ```
 
 </details>

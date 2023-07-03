@@ -34,7 +34,7 @@ The module contains 4 functionalities:
   is equal to the distance from hunter to target robot. If this velocity is higher than the maximum velocity allowed, 
   then velocity is set to the maximum velocity.
   
-  <img src="../doc_images/runaway_robot/pid_control_runaway_robot.png" alt="drawing" width="400" height="300"/>
+  <img src="../doc_images/runaway_robot/pid_control_runaway_robot.png" alt="drawing" width="900" height="600"/>
 
   
 
@@ -47,6 +47,6 @@ The module contains 4 functionalities:
   and if the hunter robot can reach the same state t+3 after 3 timesteps with its velocity, then it will aim to that 
   t+3 state, instead of aiming to t, t+1 or t+2, where the target robot would get before the hunter.
   
-  <img src="../doc_images/runaway_robot/runaway_robot_slow_hunter.png" alt="drawing" width="400" height="300"/>
+  <img src="../doc_images/runaway_robot/runaway_robot_slow_hunter.png" alt="drawing" width="1000" height="600"/>
   
   

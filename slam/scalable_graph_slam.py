@@ -132,7 +132,6 @@ def main() -> None:
     # and landmarks. Also plot the path followed by the robot during the SLAM process
     plot_graph_slam_estimates(slam_mu, plot_data, num_landmarks)
 
-    data, plot_data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
     scalable_slam_mu, scalable_slam_omega = online_slam(data, num_landmarks, motion_noise, measurement_noise)
 
     # Convert the result to visible data

@@ -11,4 +11,4 @@ picked up when the robot reaches the box position) and take it back to the start
 grid no longer contains the picked up box, and so the grid cell which previously contained the box is now 
 a navigable cell. The steps to complete the task for a random environment/grid are shown below:
 
-<img src="../doc_images/warehouse_robot/warehouse_robot.png" alt="drawing" width="400" height="400"/>
+<img src="../doc_images/warehouse_robot/warehouse_robot.png" alt="drawing" width="1500" height="550"/>

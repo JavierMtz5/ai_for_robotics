@@ -66,8 +66,9 @@ optimal policy returned by the algorithm, and the value of each state, are shown
 This module uses Dynamic Programming to find the optimal policy for reaching a given goal state, when the motion of 
 the robot is stochastic. The robot has a 50% chance of failure when moving forward, which would mean that the 
 robot moves either rights or left. Because of the stochasticity of the Robot's motion, the robot should consider 
-stochastic collisions when navigating very close to a wall, thus decreasing the value of those states. The optimal 
-policy returned by the algorithm, and the value of each state, are shown in the following images:
+stochastic collisions when navigating very close to a wall, thus decreasing the value of those states. For the following 
+example the cost of taking a step is 1, and the cost of a collision is 1000. The optimal policy returned by the 
+algorithm, and the value of each state, are shown in the following images:
 
 <img src="../doc_images/search/stochastic_motion_policy.png" alt="drawing" width="600" height="450"/> <img src="../doc_images/search/stochastic_motion_values.png" alt="drawing" width="600" height="450"/>
 
