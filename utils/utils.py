@@ -1,6 +1,9 @@
 from math import *
 from utils.robot import Robot
-from typing import List, Tuple, Union, Callable, Optional
+from typing import List, Tuple, Union, Callable, Optional, Dict
+import numpy as np
+import matplotlib.pyplot as plt
+import time
 
 
 def distance_between(point1: Union[Tuple[float, float], List[float]],
@@ -202,8 +205,44 @@ def test_robot_capture(hunter_bot: Robot, target_bot: Robot,
         chaser_robot.goto(hunter_bot.x * size_multiplier, hunter_bot.y * size_multiplier - 100)
         # End of visualization
 
+        time.sleep(2)
+
         ctr += 1
         if ctr >= 1000:
             print("Could not catch the Target Robot in less than 1000 timesteps")
 
     turtle.clearscreen()
+
+
+def plot_graph_slam_estimates(estimate: np.ndarray, plot_data: Dict[str, list], num_landmarks: int) -> None:
+    """
+    Plots the real position of the landmarks and robot, and the estimate positions of the landmarks
+    and the robot, predicted by the Graph SLAM algorithm
+    Arguments:
+        estimate: mu matrix obtained from the Graph SLAM algorithm.
+        plot_data: dictionary containing two keys: landmarks and robot_positions. The first element contains the
+            real position of the landmarks, and the second one contains the different positions reached by the robot
+            during its motion.
+        num_landmarks: number of landmarks
+    """
+    # Initialize plot and set axis limits
+    plt.plot(0, 0)
+    plt.xlim(0, 100)
+    plt.ylim(0, 100)
+    # Plot the path followed by the robot along its motion, a   nd the estimate followed path
+    plt.plot([robot_pos[0] for robot_pos in plot_data['robot_positions']],
+             [robot_pos[1] for robot_pos in plot_data['robot_positions']])
+    plt.plot([estimate[i*2] for i in range(len(estimate)//2 - num_landmarks)],
+             [estimate[(i*2)+1] for i in range(len(estimate)//2 - num_landmarks)])
+    # Plot the real positions of the landmarks, and the estimated positions
+    plt.scatter(x=[landmark[0] for landmark in plot_data['landmarks']],
+                y=[landmark[1] for landmark in plot_data['landmarks']], c='red')
+    plt.scatter(x=[estimate[-1 * i] for i in range(num_landmarks * 2, 0, -2)],
+                y=[estimate[-1 * i] for i in range((num_landmarks * 2) - 1, -1, -2)], c='green')
+    # Plot the real position of the robot, and the estimated position
+    plt.scatter(x=plot_data['robot_positions'][-1][0],
+                y=plot_data['robot_positions'][-1][1], c='blue')
+    plt.scatter(x=estimate[-2 + -1 * (num_landmarks * 2)],
+                y=estimate[-1 + -1 * (num_landmarks * 2)], c='yellow')
+
+    plt.show()

@@ -316,21 +316,21 @@ def capture_target_robot_with_low_velocity() -> None:
 
 if __name__ == '__main__':
     # Estimate the Target Robot pose without noise
-    print('Estimate for the Target Robot pose without noise:')
-    estimate_next_target_pos_without_noise()
-    print('\n')
-
-    # Estimate the Target Robot pose with measurement noise
-    print('Estimate for the Target Robot pose with noise:')
-    estimate_next_target_pos_with_noise()
-    print('\n')
+    # print('Estimate for the Target Robot pose without noise:')
+    # estimate_next_target_pos_without_noise()
+    # print('\n')
+    #
+    # # Estimate the Target Robot pose with measurement noise
+    # print('Estimate for the Target Robot pose with noise:')
+    # estimate_next_target_pos_with_noise()
+    # print('\n')
 
     # Capture the Target Robot when Hunter Robot's max velocity is almost twice the Target's max velocity
     print('Capture the Target Robot with high velocity:')
     capture_target_robot_with_high_velocity()
     print('\n')
 
-    # Capture the Target Robot when Hunter Robot's max velocity is lower than Target's max velocity
-    print('Capture the Target Robot with low velocity:')
-    capture_target_robot_with_low_velocity()
-    print('\n')
+    # # Capture the Target Robot when Hunter Robot's max velocity is lower than Target's max velocity
+    # print('Capture the Target Robot with low velocity:')
+    # capture_target_robot_with_low_velocity()
+    # print('\n')

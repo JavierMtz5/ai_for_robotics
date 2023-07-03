@@ -1,6 +1,7 @@
 from typing import List, Union, Tuple
 import numpy as np
 from slam.graph_slam_2d import make_data, slam
+from utils.utils import plot_graph_slam_estimates
 
 
 def online_slam(data: List[List[Union[List[List[float]], List[float]]]],
@@ -111,7 +112,7 @@ def main() -> None:
     measurement_noise = 2.0
     distance = 20.0
 
-    data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
+    data, plot_data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
     slam_mu = slam(data, n, num_landmarks, motion_noise, measurement_noise)
 
     # Convert the result to visible data
@@ -127,7 +128,11 @@ def main() -> None:
             print(f'Landmark location: [x={slam_mu[index_x]} y={slam_mu[index_y]}]')
     print('\n\n')
 
-    data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
+    # Plot the position of the real robot and landmarks, and the estimate position of the real robot ,
+    # and landmarks. Also plot the path followed by the robot during the SLAM process
+    plot_graph_slam_estimates(slam_mu, plot_data, num_landmarks)
+
+    data, plot_data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
     scalable_slam_mu, scalable_slam_omega = online_slam(data, num_landmarks, motion_noise, measurement_noise)
 
     # Convert the result to visible data
@@ -138,6 +143,11 @@ def main() -> None:
             print(f'Robot position:    [x={scalable_slam_mu[index_x]} y={scalable_slam_mu[index_y]}]')
         else:
             print(f'Landmark location: [x={scalable_slam_mu[index_x]} y={scalable_slam_mu[index_y]}]')
+
+    # Plot the position of the real robot and landmarks, and the estimate position of the real robot ,
+    # and landmarks. Also plot the path followed by the robot during the SLAM process, and the estimate
+    # path of the robot
+    plot_graph_slam_estimates(scalable_slam_mu, plot_data, num_landmarks)
 
 
 if __name__ == '__main__':

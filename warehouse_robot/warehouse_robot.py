@@ -112,11 +112,11 @@ def solution_check(test, epsilon=0.00001):
             print("\nTest case", i + 1, "passed!")
             answer_list.append(1)
             correct_answers += 1
-            # print "#############################################"
         else:
             print("\nTest case ", i + 1, "unsuccessful. Your answer ", user_cost,
                   "was not within ", epsilon, "of ", true_cost)
             answer_list.append(0)
+        print('========================================================================?)')
     runtime = time.time() - start
     if runtime > 1:
         print("Your code is too slow, try to optimize it! Running time was: ", runtime)
@@ -130,7 +130,6 @@ def solution_check(test, epsilon=0.00001):
 
 
 def main():
-    # Testing environment
     # Test Case 1
     warehouse1 = [[1, 2, 3],
                   [0, 0, 0],

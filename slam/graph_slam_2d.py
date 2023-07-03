@@ -1,8 +1,10 @@
 from math import *
-from typing import List, Union
+from typing import List, Union, Dict, Tuple
 import random
 import numpy as np
 from utils.robot import Robot
+from utils.utils import plot_graph_slam_estimates
+import matplotlib.pyplot as plt
 
 
 def make_data(n: int,
@@ -11,7 +13,8 @@ def make_data(n: int,
               measurement_range: float,
               motion_noise: float,
               measurement_noise: float,
-              distance: float) -> List[List[Union[List[List[float]], List[float]]]]:
+              distance: float
+              ) -> Tuple[List[List[Union[List[List[float]], List[float]]]], Dict[str, list]]:
     """
     Creates random world data for later performing Graph SLAM
     Arguments:
@@ -27,15 +30,20 @@ def make_data(n: int,
     complete = False
     while not complete:
 
-        data = list()
+        data = list()  # data to be used in the Graph SLAM algorithm
+        plot_data = {'landmarks': list(),
+                     'robot_positions': list()}  # data to be used when plotting the Graph SLAM algorithm
 
         # Create robot and world landmarks, and set initial position to middle of the world
         robot = Robot(world_size=world_size,
                       measurement_range=measurement_range)
         robot.set(world_size / 2., world_size / 2., 0.)
+        plot_data['robot_positions'].append((world_size / 2., world_size / 2.))
         robot.set_noise(0., 0., 0., 0., 0., motion_noise, measurement_noise)
         robot.make_landmarks(num_landmarks)
         seen = [False for _ in range(num_landmarks)]
+        for landmark_pos in robot.landmarks:
+            plot_data['landmarks'].append(landmark_pos)
 
         # Get an initial orientation and motion randomly
         # The x and y relative distances are calculated previously to store them in data list
@@ -71,6 +79,9 @@ def make_data(n: int,
             # Add the movement and the sensing to data list
             data.append([Z, [dx, dy]])
 
+            # Add the robot's position to plot_data
+            plot_data['robot_positions'].append((robot.x, robot.y))
+
         # If all landmarks are seen at least once, the data generation ends
         complete = (sum(seen) == num_landmarks)
 
@@ -81,7 +92,7 @@ def make_data(n: int,
     print(f'Actual state of the robot: [x={robot.x} y={robot.y}]')
     print('\n')
 
-    return data
+    return data, plot_data
 
 
 def slam(data: List[List[Union[List[List[float]], List[float]]]],
@@ -171,7 +182,6 @@ def slam(data: List[List[Union[List[List[float]], List[float]]]],
 
 
 def main() -> None:
-
     num_landmarks = 5
     n = 20
     world_size = 100.0
@@ -180,19 +190,24 @@ def main() -> None:
     measurement_noise = 2.0
     distance = 20.0
 
-    data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
+    data, plot_data = make_data(n, num_landmarks, world_size, measurement_range, motion_noise, measurement_noise, distance)
     result = slam(data, n, num_landmarks, motion_noise, measurement_noise)
 
     # Convert the result to visible data
     for i in range(0, len(result), 2):
         index_x, index_y = i, i + 1
-        if i < len(result) - num_landmarks*2:
+        if i < len(result) - num_landmarks * 2:
             if i == len(result) - 2 * num_landmarks - 2:
                 print(f'Robot location: [x={result[index_x]} y={result[index_y]}]')
             else:
                 print(f'[x={result[index_x]} y={result[index_y]}]')
         else:
             print(f'Landmark location: [x={result[index_x]} y={result[index_y]}]')
+
+    # Plot the position of the real robot and landmarks, and the estimate position of the real robot ,
+    # and landmarks. Also plot the path followed by the robot during the SLAM process, and the estimate
+    # path of the robot
+    plot_graph_slam_estimates(result, plot_data, num_landmarks)
 
 
 if __name__ == '__main__':

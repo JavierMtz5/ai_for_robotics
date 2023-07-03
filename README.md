@@ -10,6 +10,8 @@
 - [Search Algorithms](search/README.md)
 - [PID Control](pid_control/README.md)
 - [Graph SLAM](slam/README.md)
+- [Warehouse Robot](warehouse_robot/README.md)
+- [Runaway Robot](runaway_robot/README.md)
 
 
 > Sebastian Thrun's course "Artificial Intelligence for Robotics": 
@@ -26,6 +28,10 @@
 | <img src="./doc_images/particle_filter/particle_filter.png" alt="drawing" width="400" height="300"/> | <img src="./doc_images/search/2d_policy.png" alt="drawing" width="400" height="300"/>  |
 
 |                                               PID Control                                               |                                       Graph SLAM                                        |
+|:-------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|
+| <img src="./doc_images/pid_control/pid_controller_twiddle.png" alt="drawing" width="400" height="300"/> | <img src="./doc_images/slam/segmented_cte.png" alt="drawing" width="400" height="300"/> |
+
+|                                               Warehouse Robot                                           |                                       Runaway Robot                                     |
 |:-------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|
 | <img src="./doc_images/pid_control/pid_controller_twiddle.png" alt="drawing" width="400" height="300"/> | <img src="./doc_images/slam/segmented_cte.png" alt="drawing" width="400" height="300"/> |
 
